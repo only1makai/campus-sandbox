@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#F2A81D"/>
+  <g transform="rotate(-4 256 256)">
+    <rect x="106" y="106" width="300" height="300"
+          rx="48" fill="#FFFFFF" stroke="#262014" stroke-width="8.192"/>
+    <text x="256" y="256" text-anchor="middle" dominant-baseline="central"
+          font-family="Georgia, 'Times New Roman', serif" font-weight="800"
+          font-size="186" fill="#262014">S</text>
+  </g>
+</svg>
