@@ -1,17 +1,12 @@
 import { notFound } from "next/navigation";
+import AvatarUpload from "@/components/AvatarUpload";
 import EditProfile from "@/components/EditProfile";
+import NetworkStrip from "@/components/NetworkStrip";
+import ShippedList from "@/components/ShippedList";
 import { getCurrentUser, getProfileByHandle, getReputation } from "@/lib/identity";
-import type { SupportingColor } from "@/lib/identity";
+import { fetchPostsByAuthor } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
-
-const FILL: Record<SupportingColor, string> = {
-  gold: "bg-gold",
-  "live-green": "bg-live-green",
-  "link-blue": "bg-link-blue",
-  tomato: "bg-tomato",
-  grape: "bg-grape",
-};
 
 const BADGE_LABEL: Record<string, string> = {
   "karma-earner": "Karma earner",
@@ -28,9 +23,10 @@ export default async function ProfilePage({
   const profile = await getProfileByHandle(decodeURIComponent(handle));
   if (!profile) notFound();
 
-  const [reputation, currentUser] = await Promise.all([
+  const [reputation, currentUser, posts] = await Promise.all([
     getReputation(profile.id),
     getCurrentUser(),
+    fetchPostsByAuthor(profile.id),
   ]);
   const isOwn = currentUser?.id === profile.id;
 
@@ -38,21 +34,12 @@ export default async function ProfilePage({
     <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-12">
       <div className="rotate-[-1deg] rounded-card border-2 border-ink bg-card p-8 shadow-[4px_4px_0_#262014]">
         <div className="flex items-center gap-4">
-          {/* avatar: image if set, flat color fallback */}
-          {profile.avatarImageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element -- remote host list unknown for MVP
-            <img
-              src={profile.avatarImageUrl}
-              alt={`@${profile.handle} avatar`}
-              className="h-20 w-20 rotate-[2deg] rounded-chip border-2 border-ink object-cover shadow-[2px_2px_0_#262014]"
-            />
-          ) : (
-            <span
-              className={`flex h-20 w-20 rotate-[2deg] items-center justify-center rounded-chip border-2 border-ink font-display text-4xl font-extrabold text-white shadow-[2px_2px_0_#262014] ${FILL[profile.avatarColor]}`}
-            >
-              {profile.handle[0].toUpperCase()}
-            </span>
-          )}
+          <AvatarUpload
+            handle={profile.handle}
+            avatarColor={profile.avatarColor}
+            initialImageUrl={profile.avatarImageUrl ?? null}
+            isOwn={isOwn}
+          />
 
           <div>
             <h1 className="font-display text-heading text-ink">{profile.displayName}</h1>
@@ -68,7 +55,13 @@ export default async function ProfilePage({
           </div>
         </div>
 
-        {profile.bio && <p className="mt-4 text-body text-ink">{profile.bio}</p>}
+        {profile.bio ? (
+          <p className="mt-4 text-body text-ink">{profile.bio}</p>
+        ) : (
+          <p className="mt-4 text-body italic text-text-faint">No bio yet.</p>
+        )}
+
+        {isOwn && <EditProfile initialBio={profile.bio ?? ""} />}
 
         {/* read-only platform reputation — display fact, never ranking */}
         <div className="mt-5 flex flex-wrap items-center gap-2">
@@ -93,12 +86,12 @@ export default async function ProfilePage({
           </div>
         )}
 
-        {isOwn && (
-          <EditProfile
-            initialBio={profile.bio ?? ""}
-            initialAvatarImageUrl={profile.avatarImageUrl ?? ""}
-          />
-        )}
+        <NetworkStrip />
+
+        <p className="mt-6 text-meta font-semibold uppercase tracking-[0.1em] text-text-faint">
+          Shipped
+        </p>
+        <ShippedList posts={posts} />
       </div>
     </main>
   );

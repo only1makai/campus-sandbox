@@ -106,7 +106,12 @@ export type Database = {
       record_cta_click: { Args: { p_post_id: string }; Returns: undefined };
       record_review: { Args: { p_post_id: string; p_body: string }; Returns: undefined };
       update_profile_identity: {
-        Args: { p_bio: string | null; p_avatar_image_url: string | null };
+        Args: {
+          p_bio?: string | null;
+          p_avatar_image_url?: string | null;
+          p_update_bio?: boolean;
+          p_update_avatar?: boolean;
+        };
         Returns: undefined;
       };
       profile_reputation: { Args: { p_profile_id: string }; Returns: unknown };

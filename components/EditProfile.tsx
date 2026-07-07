@@ -8,29 +8,19 @@ import { updateProfileAction } from "@/app/actions/profile";
 const INK = "#262014";
 const SPRING = [0.34, 1.56, 0.64, 1] as const;
 
-const inputClass =
-  "w-full rounded-btn border-2 border-ink bg-cream px-3 py-2 text-body text-ink placeholder:text-text-faint focus:bg-card focus:outline-none";
-
-/** Minimal edit stub for the shared identity fields — groundwork, not the
- *  final profile editor (a Design pass comes later). */
-export default function EditProfile({
-  initialBio,
-  initialAvatarImageUrl,
-}: {
-  initialBio: string;
-  initialAvatarImageUrl: string;
-}) {
+/** Bio-only edit stub — groundwork, not the final profile editor (avatar
+ *  upload lives in AvatarUpload; a Design pass comes later). */
+export default function EditProfile({ initialBio }: { initialBio: string }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [bio, setBio] = useState(initialBio);
-  const [avatarImageUrl, setAvatarImageUrl] = useState(initialAvatarImageUrl);
   const [error, setError] = useState<string | null>(null);
   const [busy, startTransition] = useTransition();
 
   const save = () => {
     setError(null);
     startTransition(async () => {
-      const result = await updateProfileAction({ bio, avatarImageUrl });
+      const result = await updateProfileAction({ bio });
       if (!result.ok) {
         setError(result.message ?? "Could not save — try again.");
         return;
@@ -69,14 +59,7 @@ export default function EditProfile({
                 rows={3}
                 maxLength={280}
                 placeholder="A short bio — what do you build, make, or forage?"
-                className={inputClass}
-              />
-              <input
-                type="url"
-                value={avatarImageUrl}
-                onChange={(e) => setAvatarImageUrl(e.target.value)}
-                placeholder="Avatar image URL (optional, https://…)"
-                className={inputClass}
+                className="w-full rounded-btn border-2 border-ink bg-cream px-3 py-2 text-body text-ink placeholder:text-text-faint focus:bg-card focus:outline-none"
               />
               {error && (
                 <p className="rounded-chip border-2 border-ink bg-tomato px-3 py-2 text-meta font-semibold text-white">
@@ -89,9 +72,9 @@ export default function EditProfile({
                 disabled={busy}
                 whileTap={{ y: 2, boxShadow: `1px 1px 0 ${INK}` }}
                 style={{ boxShadow: `3px 3px 0 ${INK}` }}
-                className="rounded-btn border-2 border-ink bg-gold px-4 py-2 font-sans text-meta font-semibold text-ink hover:bg-gold-hover active:bg-gold-active disabled:opacity-60"
+                className="self-start rounded-btn border-2 border-ink bg-gold px-4 py-2 font-sans text-meta font-semibold text-ink hover:bg-gold-hover active:bg-gold-active disabled:opacity-60"
               >
-                {busy ? "Saving…" : "Save"}
+                {busy ? "Saving…" : "Save bio"}
               </motion.button>
             </div>
           </motion.div>

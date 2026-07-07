@@ -3,6 +3,7 @@ import type {
   AppStatus,
   FilterTag,
   Platform,
+  Post,
   ProductPost,
   ProductStatus,
   SupportingColor,
@@ -112,4 +113,25 @@ export async function fetchProducts(): Promise<ProductPost[]> {
 
   if (error) throw new Error(`fetchProducts failed: ${error.message}`);
   return (data as unknown as ProductWithAuthor[]).map(toProductPost);
+}
+
+/**
+ * Posts (apps + products) by one author, for the profile page's "shipped"
+ * list. Same score-then-recency ordering; boost is only ever non-zero on
+ * product rows (reviews are the only verified-karma path).
+ */
+export async function fetchPostsByAuthor(authorId: string): Promise<Post[]> {
+  if (envMissing()) return [];
+
+  const { data, error } = await supabaseAnon()
+    .from("ranked_posts")
+    .select("*, author_profile:profiles!posts_author_fkey(*), reviews(count)")
+    .eq("author", authorId)
+    .order("score", { ascending: false })
+    .order("created_at", { ascending: false });
+
+  if (error) throw new Error(`fetchPostsByAuthor failed: ${error.message}`);
+  return (data as unknown as ProductWithAuthor[]).map((row) =>
+    row.type === "app" ? toAppPost(row) : toProductPost(row),
+  );
 }
