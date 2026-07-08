@@ -22,7 +22,7 @@ export default function BoostBadge({
 
   return (
     <span
-      className={`${placement} rotate-[2deg] rounded-chip border-2 border-ink bg-gold px-2 py-0.5 font-display text-[11px] font-extrabold tracking-wide text-ink shadow-[2px_2px_0_#262014]`}
+      className={`${placement} rounded-chip border-2 border-ink bg-gold px-2 py-0.5 font-display text-[11px] font-extrabold tracking-wide text-ink shadow-resting`}
     >
       BOOSTED · {daysLeft}d left
     </span>

@@ -32,7 +32,7 @@ export default async function ProfilePage({
 
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-12">
-      <div className="rotate-[-1deg] rounded-card border-2 border-ink bg-card p-8 shadow-[4px_4px_0_#262014]">
+      <div className="rounded-card border-2 border-ink bg-card p-8 shadow-resting">
         <div className="flex items-center gap-4">
           <AvatarUpload
             handle={profile.handle}
@@ -65,7 +65,7 @@ export default async function ProfilePage({
 
         {/* read-only platform reputation — display fact, never ranking */}
         <div className="mt-5 flex flex-wrap items-center gap-2">
-          <span className="rotate-[1deg] rounded-chip border-2 border-ink bg-gold px-3 py-1 font-display text-meta font-extrabold text-ink shadow-[2px_2px_0_#262014]">
+          <span className="rounded-chip border-2 border-ink bg-gold px-3 py-1 font-display text-meta font-extrabold text-ink shadow-resting">
             {reputation.totalKarma.toLocaleString()} karma
           </span>
           <span className="text-meta text-text-secondary">

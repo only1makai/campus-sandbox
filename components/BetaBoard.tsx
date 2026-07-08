@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import type { AppPost, FilterTag } from "@/types";
 import AppCard from "@/components/AppCard";
+import { tapPress, transitionFast } from "@/lib/motion";
 
 const FILTERS: { label: string; tag: FilterTag | "all" }[] = [
   { label: "All", tag: "all" },
@@ -21,11 +23,19 @@ export default function BetaBoard({
   isAuthed: boolean;
 }) {
   const [active, setActive] = useState<FilterTag | "all">("all");
+  const query = (useSearchParams().get("q") ?? "").trim().toLowerCase();
 
   // Ordering = score (upvotes + capped verified boost), then recency —
   // mirrors the ranked_posts view; cosmetic karma contributes nothing.
   const visible = apps
     .filter((app) => active === "all" || app.tags.includes(active))
+    .filter(
+      (app) =>
+        !query ||
+        app.title.toLowerCase().includes(query) ||
+        app.description.toLowerCase().includes(query) ||
+        app.author.handle.toLowerCase().includes(query),
+    )
     .sort(
       (a, b) =>
         b.upvotes + (b.boost ?? 0) - (a.upvotes + (a.boost ?? 0)) ||
@@ -48,8 +58,8 @@ export default function BetaBoard({
             key={f.tag}
             type="button"
             onClick={() => setActive(f.tag)}
-            whileTap={{ scale: 0.96 }}
-            transition={{ duration: 0.16, ease: [0.34, 1.56, 0.64, 1] }}
+            whileTap={tapPress}
+            transition={transitionFast}
             className={`rounded-full border-2 px-4 py-1.5 font-sans text-meta font-semibold ${
               active === f.tag
                 ? "border-ink bg-ink text-white"
@@ -61,10 +71,14 @@ export default function BetaBoard({
         ))}
       </div>
 
+      {visible.length === 0 && (
+        <p className="mt-8 text-body text-text-faint">No apps match &ldquo;{query}&rdquo;.</p>
+      )}
+
       <motion.div layout className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
         <AnimatePresence mode="popLayout">
-          {visible.map((app, i) => (
-            <AppCard key={app.id} app={app} index={i} isAuthed={isAuthed} />
+          {visible.map((app) => (
+            <AppCard key={app.id} app={app} isAuthed={isAuthed} />
           ))}
         </AnimatePresence>
       </motion.div>

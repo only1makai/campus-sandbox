@@ -10,6 +10,7 @@ import type {
 } from "@/types";
 import type { ProfileRow, RankedPostRow } from "@/types/supabase";
 import { supabaseAnon } from "@/lib/supabase";
+import { supabaseServer } from "@/lib/supabase/server";
 import { toProfile } from "@/lib/identity";
 import { apps as appFixtures, products as productFixtures } from "@/lib/fixtures";
 
@@ -131,6 +132,46 @@ export async function fetchPostsByAuthor(authorId: string): Promise<Post[]> {
     .order("created_at", { ascending: false });
 
   if (error) throw new Error(`fetchPostsByAuthor failed: ${error.message}`);
+  return (data as unknown as ProductWithAuthor[]).map((row) =>
+    row.type === "app" ? toAppPost(row) : toProductPost(row),
+  );
+}
+
+/**
+ * Posts one user has upvoted, for the "Upvoted" personal view. karma_ledger
+ * has no anon read surface — only a narrow self-read RLS policy
+ * (auth.uid() = actor_id, migration 008) — so this MUST run through the
+ * session-scoped server client, not supabaseAnon(), or RLS silently
+ * returns zero rows.
+ */
+export async function fetchUpvotedPosts(actorId: string): Promise<Post[]> {
+  if (envMissing()) return [];
+
+  const supabase = await supabaseServer();
+  const { data: ledgerRows, error: ledgerError } = await supabase
+    .from("karma_ledger")
+    .select("source_post_id")
+    .eq("actor_id", actorId)
+    .eq("action", "upvote_received");
+  if (ledgerError) throw new Error(`fetchUpvotedPosts (ledger) failed: ${ledgerError.message}`);
+
+  const postIds = [
+    ...new Set(
+      (ledgerRows ?? [])
+        .map((r) => r.source_post_id)
+        .filter((id): id is string => id !== null),
+    ),
+  ];
+  if (postIds.length === 0) return [];
+
+  const { data, error } = await supabaseAnon()
+    .from("ranked_posts")
+    .select("*, author_profile:profiles!posts_author_fkey(*), reviews(count)")
+    .in("id", postIds)
+    .order("score", { ascending: false })
+    .order("created_at", { ascending: false });
+
+  if (error) throw new Error(`fetchUpvotedPosts failed: ${error.message}`);
   return (data as unknown as ProductWithAuthor[]).map((row) =>
     row.type === "app" ? toAppPost(row) : toProductPost(row),
   );

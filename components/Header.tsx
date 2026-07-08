@@ -1,0 +1,75 @@
+import Link from "next/link";
+import { Plus } from "lucide-react";
+import type { CurrentUser } from "@/types";
+import { signOutAction } from "@/app/actions/auth";
+import SearchInput from "@/components/SearchInput";
+
+const FILL: Record<string, string> = {
+  gold: "bg-gold",
+  "live-green": "bg-live-green",
+  "link-blue": "bg-link-blue",
+  tomato: "bg-tomato",
+  grape: "bg-grape",
+};
+
+export default function Header({ user }: { user: CurrentUser | null }) {
+  return (
+    <header className="flex items-center gap-4 border-b-2 border-ink bg-cream px-6 py-3">
+      <Link
+        href="/"
+        className="shrink-0 rounded-chip border-2 border-ink bg-card px-3 py-1 font-display text-meta font-extrabold tracking-wide text-ink shadow-resting"
+      >
+        CAMPUS SANDBOX
+      </Link>
+
+      <SearchInput />
+
+      <div className="ml-auto flex shrink-0 items-center gap-3">
+        <button
+          type="button"
+          disabled
+          title="Self-serve shipping is coming soon"
+          className="flex cursor-not-allowed items-center gap-1.5 rounded-btn border-2 border-dashed border-text-faint px-3 py-1.5 text-meta font-semibold text-text-faint"
+        >
+          <Plus size={14} />
+          Ship
+        </button>
+
+        {user ? (
+          <div className="flex items-center gap-3">
+            <Link
+              href={user.profile ? `/u/${user.profile.handle}` : "/"}
+              className="flex items-center gap-2 hover:underline"
+            >
+              <span
+                className={`flex h-7 w-7 items-center justify-center rounded-full border-2 border-ink text-[11px] font-bold text-white ${
+                  FILL[user.profile?.avatarColor ?? "gold"]
+                }`}
+              >
+                {(user.profile?.handle ?? user.email)[0].toUpperCase()}
+              </span>
+              <span className="text-meta font-semibold text-ink">
+                @{user.profile?.handle ?? "…"}
+              </span>
+            </Link>
+            <form action={signOutAction}>
+              <button
+                type="submit"
+                className="rounded-btn border-2 border-ink bg-card px-3 py-1.5 text-meta font-semibold text-ink shadow-resting transition-shadow hover:shadow-elevated hover:bg-paper"
+              >
+                Sign out
+              </button>
+            </form>
+          </div>
+        ) : (
+          <Link
+            href="/login"
+            className="rounded-btn border-2 border-ink bg-gold px-4 py-1.5 text-meta font-semibold text-ink shadow-resting transition-shadow hover:shadow-elevated hover:bg-gold-hover"
+          >
+            Sign in
+          </Link>
+        )}
+      </div>
+    </header>
+  );
+}

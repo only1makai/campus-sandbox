@@ -4,9 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { updateProfileAction } from "@/app/actions/profile";
-
-const INK = "#262014";
-const SPRING = [0.34, 1.56, 0.64, 1] as const;
+import { tapPress, transitionBase, transitionFast } from "@/lib/motion";
 
 /** Bio-only edit stub — groundwork, not the final profile editor (avatar
  *  upload lives in AvatarUpload; a Design pass comes later). */
@@ -35,10 +33,9 @@ export default function EditProfile({ initialBio }: { initialBio: string }) {
       <motion.button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        whileTap={{ y: 2, boxShadow: `1px 1px 0 ${INK}` }}
-        transition={{ duration: 0.16, ease: SPRING }}
-        style={{ boxShadow: `3px 3px 0 ${INK}` }}
-        className="rounded-btn border-2 border-ink bg-card px-4 py-2 font-sans text-meta font-semibold text-ink hover:bg-cream"
+        whileTap={tapPress}
+        transition={transitionFast}
+        className="rounded-btn border-2 border-ink bg-card px-4 py-2 font-sans text-meta font-semibold text-ink shadow-resting transition-shadow hover:shadow-elevated hover:bg-cream"
       >
         {open ? "Close" : "Edit profile"}
       </motion.button>
@@ -49,7 +46,7 @@ export default function EditProfile({ initialBio }: { initialBio: string }) {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2, ease: SPRING }}
+            transition={transitionBase}
             className="overflow-hidden"
           >
             <div className="mt-3 flex flex-col gap-2">
@@ -70,9 +67,9 @@ export default function EditProfile({ initialBio }: { initialBio: string }) {
                 type="button"
                 onClick={save}
                 disabled={busy}
-                whileTap={{ y: 2, boxShadow: `1px 1px 0 ${INK}` }}
-                style={{ boxShadow: `3px 3px 0 ${INK}` }}
-                className="self-start rounded-btn border-2 border-ink bg-gold px-4 py-2 font-sans text-meta font-semibold text-ink hover:bg-gold-hover active:bg-gold-active disabled:opacity-60"
+                whileTap={tapPress}
+                transition={transitionFast}
+                className="self-start rounded-btn border-2 border-ink bg-gold px-4 py-2 font-sans text-meta font-semibold text-ink shadow-resting transition-shadow hover:shadow-elevated hover:bg-gold-hover active:bg-gold-active disabled:opacity-60"
               >
                 {busy ? "Saving…" : "Save bio"}
               </motion.button>

@@ -8,9 +8,7 @@ import type { AppPost, SupportingColor } from "@/types";
 import { logKarma } from "@/lib/karma";
 import { recordCtaClick, upvotePost } from "@/app/actions/karma";
 import BoostBadge from "@/components/BoostBadge";
-
-const INK = "#262014";
-const SPRING = [0.34, 1.56, 0.64, 1] as const;
+import { hoverLift, tapPress, transitionBase, transitionFast } from "@/lib/motion";
 
 const FILL: Record<SupportingColor, string> = {
   gold: "bg-gold",
@@ -35,16 +33,11 @@ const STATUS_PILL: Record<AppPost["status"], string> = {
   live: "bg-card text-ink",
 };
 
-/** Alternating slight tilt — every card gets one, that's the brand. */
-const TILTS = [-2, 1.5, -1.2, 2, -1.6, 1.2];
-
 export default function AppCard({
   app,
-  index,
   isAuthed,
 }: {
   app: AppPost;
-  index: number;
   isAuthed: boolean;
 }) {
   const router = useRouter();
@@ -53,7 +46,6 @@ export default function AppCard({
   const [stickerKey, setStickerKey] = useState(0);
 
   const betaFull = app.status === "beta_full";
-  const tilt = TILTS[index % TILTS.length];
 
   const handleUpvote = () => {
     // Upvoting writes — requires a signed-in slug (browsing stays public).
@@ -89,17 +81,12 @@ export default function AppCard({
   return (
     <motion.article
       layout
-      initial={{ opacity: 0, y: 16, rotate: tilt }}
-      animate={{ opacity: 1, y: 0, rotate: tilt }}
-      exit={{ opacity: 0, scale: 0.92 }}
-      whileHover={{
-        y: -2,
-        rotate: 0,
-        boxShadow: betaFull ? `4px 4px 0 ${INK}` : `6px 6px 0 ${INK}`,
-      }}
-      transition={{ duration: 0.2, ease: SPRING, layout: { duration: 0.24, ease: SPRING } }}
-      style={{ boxShadow: `4px 4px 0 ${INK}` }}
-      className={`flex flex-col overflow-hidden rounded-card border-2 ${
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0 }}
+      whileHover={hoverLift}
+      transition={{ ...transitionBase, layout: transitionBase }}
+      className={`flex flex-col overflow-hidden rounded-card border-2 shadow-resting transition-shadow duration-150 hover:shadow-elevated ${
         betaFull ? "border-dashed border-text-faint bg-paper" : "border-ink bg-card"
       }`}
     >
@@ -110,7 +97,7 @@ export default function AppCard({
         }`}
       >
         <span
-          className={`flex h-16 w-16 rotate-[-3deg] items-center justify-center rounded-chip border-2 border-ink bg-card font-display text-4xl font-extrabold shadow-[2px_2px_0_#262014] ${
+          className={`flex h-16 w-16 items-center justify-center rounded-chip border-2 border-ink bg-card font-display text-4xl font-extrabold shadow-resting ${
             LETTER[app.bannerColor]
           }`}
         >
@@ -154,10 +141,9 @@ export default function AppCard({
             target="_blank"
             rel="noopener noreferrer"
             onClick={handleCta}
-            whileTap={{ y: 2, boxShadow: `1px 1px 0 ${INK}` }}
-            transition={{ duration: 0.16, ease: SPRING }}
-            style={{ boxShadow: `3px 3px 0 ${INK}` }}
-            className={`flex flex-1 items-center justify-center rounded-btn border-2 px-4 py-2 text-center font-sans text-meta font-semibold ${
+            whileTap={tapPress}
+            transition={transitionFast}
+            className={`flex flex-1 items-center justify-center rounded-btn border-2 px-4 py-2 text-center font-sans text-meta font-semibold shadow-resting transition-shadow hover:shadow-elevated ${
               betaFull
                 ? "border-dashed border-text-faint bg-paper text-text-secondary"
                 : "border-ink bg-gold text-ink hover:bg-gold-hover active:bg-gold-active"
@@ -171,19 +157,18 @@ export default function AppCard({
               type="button"
               onClick={handleUpvote}
               aria-pressed={upvoted}
-              whileTap={{ y: 2, boxShadow: `1px 1px 0 ${INK}` }}
-              transition={{ duration: 0.16, ease: SPRING }}
-              style={{ boxShadow: `3px 3px 0 ${INK}` }}
-              className={`flex items-center gap-1.5 rounded-btn border-2 border-ink px-3 py-2 font-sans text-meta font-semibold text-ink ${
+              whileTap={tapPress}
+              transition={transitionFast}
+              className={`flex items-center gap-1.5 rounded-btn border-2 border-ink px-3 py-2 font-sans text-meta font-semibold text-ink shadow-resting transition-shadow hover:shadow-elevated ${
                 upvoted ? "bg-gold" : "bg-card hover:bg-cream"
               }`}
             >
-              <ArrowBigUp size={16} fill={upvoted ? INK : "none"} />
+              <ArrowBigUp size={16} fill={upvoted ? "#262014" : "none"} />
               <motion.span
                 key={count}
                 initial={{ scale: 1 }}
-                animate={{ scale: [1, 1.12, 1] }}
-                transition={{ duration: 0.24, ease: SPRING }}
+                animate={{ scale: [1, 1.06, 1] }}
+                transition={transitionFast}
               >
                 {count}
               </motion.span>
@@ -193,16 +178,11 @@ export default function AppCard({
               {stickerKey > 0 && (
                 <motion.span
                   key={stickerKey}
-                  initial={{ opacity: 0, y: 4, rotate: -8, scale: 0.8 }}
-                  animate={{
-                    opacity: [0, 1, 1, 0],
-                    y: -34,
-                    rotate: [-8, 6, -3],
-                    scale: 1,
-                  }}
-                  transition={{ duration: 0.9, ease: "easeOut" }}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: [0, 1, 1, 0], y: -30 }}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
                   onAnimationComplete={() => setStickerKey(0)}
-                  className="pointer-events-none absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-chip border-2 border-ink bg-gold px-2 py-0.5 font-display text-[11px] font-extrabold text-ink shadow-[2px_2px_0_#262014]"
+                  className="pointer-events-none absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-chip border-2 border-ink bg-gold px-2 py-0.5 font-display text-[11px] font-extrabold text-ink shadow-resting"
                 >
                   +1 karma
                 </motion.span>

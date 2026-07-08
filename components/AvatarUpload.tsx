@@ -62,11 +62,11 @@ export default function AvatarUpload({
           <img
             src={shown}
             alt={`@${handle} avatar`}
-            className="h-20 w-20 rotate-[2deg] rounded-chip border-2 border-ink object-cover shadow-[2px_2px_0_#262014]"
+            className="h-20 w-20 rounded-chip border-2 border-ink object-cover shadow-resting"
           />
         ) : (
           <span
-            className={`flex h-20 w-20 rotate-[2deg] items-center justify-center rounded-chip border-2 border-ink font-display text-4xl font-extrabold text-white shadow-[2px_2px_0_#262014] ${FILL[avatarColor]}`}
+            className={`flex h-20 w-20 items-center justify-center rounded-chip border-2 border-ink font-display text-4xl font-extrabold text-white shadow-resting ${FILL[avatarColor]}`}
           >
             {handle[0].toUpperCase()}
           </span>
@@ -79,7 +79,7 @@ export default function AvatarUpload({
               disabled={busy}
               onClick={() => inputRef.current?.click()}
               aria-label="Change avatar"
-              className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-ink bg-gold text-ink opacity-0 shadow-[2px_2px_0_#262014] transition-opacity group-hover:opacity-100 disabled:opacity-60"
+              className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-ink bg-gold text-ink opacity-0 shadow-resting transition-opacity group-hover:opacity-100 disabled:opacity-60"
             >
               <Camera size={14} />
             </button>

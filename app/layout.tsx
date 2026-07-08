@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Instrument_Sans } from "next/font/google";
-import NavBar from "@/components/NavBar";
+import Header from "@/components/Header";
+import Sidebar from "@/components/Sidebar";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
+import { getCurrentUser } from "@/lib/identity";
 import "./globals.css";
 
 const bricolage = Bricolage_Grotesque({
@@ -42,20 +44,25 @@ export const viewport: Viewport = {
   themeColor: "#F2A81D",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const user = await getCurrentUser();
+
   return (
     <html
       lang="en"
       className={`${bricolage.variable} ${instrument.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="flex min-h-full flex-col">
         <ServiceWorkerRegister />
-        <NavBar />
-        {children}
+        <Header user={user} />
+        <div className="flex min-h-0 flex-1">
+          <Sidebar user={user} />
+          <div className="flex min-w-0 flex-1 flex-col">{children}</div>
+        </div>
       </body>
     </html>
   );

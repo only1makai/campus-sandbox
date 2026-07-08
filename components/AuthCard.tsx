@@ -3,9 +3,7 @@
 import { useState, useTransition } from "react";
 import { motion } from "framer-motion";
 import { signInAction, signUpAction } from "@/app/actions/auth";
-
-const INK = "#262014";
-const SPRING = [0.34, 1.56, 0.64, 1] as const;
+import { fadeUp, tapPress, transitionFast } from "@/lib/motion";
 
 const inputClass =
   "w-full rounded-btn border-2 border-ink bg-cream px-3 py-2 text-body text-ink placeholder:text-text-faint focus:outline-none focus:bg-card";
@@ -36,11 +34,10 @@ export default function AuthCard() {
   if (pendingConfirmation) {
     return (
       <motion.div
-        initial={{ opacity: 0, y: 16, rotate: -1.5 }}
-        animate={{ opacity: 1, y: 0, rotate: -1.5 }}
-        className="w-full max-w-md rounded-card border-2 border-ink bg-card p-8 text-center shadow-[4px_4px_0_#262014]"
+        {...fadeUp}
+        className="w-full max-w-md rounded-card border-2 border-ink bg-card p-8 text-center shadow-resting"
       >
-        <span className="mx-auto flex h-14 w-14 rotate-[3deg] items-center justify-center rounded-chip border-2 border-ink bg-gold font-display text-3xl shadow-[2px_2px_0_#262014]">
+        <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-chip border-2 border-ink bg-gold font-display text-3xl shadow-resting">
           ✉
         </span>
         <h2 className="mt-4 font-display text-heading text-ink">Check your inbox</h2>
@@ -54,10 +51,8 @@ export default function AuthCard() {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16, rotate: -1.5 }}
-      animate={{ opacity: 1, y: 0, rotate: -1.5 }}
-      transition={{ duration: 0.24, ease: SPRING }}
-      className="w-full max-w-md rounded-card border-2 border-ink bg-card p-8 shadow-[4px_4px_0_#262014]"
+      {...fadeUp}
+      className="w-full max-w-md rounded-card border-2 border-ink bg-card p-8 shadow-resting"
     >
       <h1 className="font-display text-heading text-ink">
         {mode === "signin" ? "Welcome back, slug" : "Join the sandbox"}
@@ -121,10 +116,9 @@ export default function AuthCard() {
         <motion.button
           type="submit"
           disabled={busy}
-          whileTap={{ y: 2, boxShadow: `1px 1px 0 ${INK}` }}
-          transition={{ duration: 0.16, ease: SPRING }}
-          style={{ boxShadow: `3px 3px 0 ${INK}` }}
-          className="mt-1 rounded-btn border-2 border-ink bg-gold px-4 py-2.5 font-sans text-body font-semibold text-ink hover:bg-gold-hover active:bg-gold-active disabled:opacity-60"
+          whileTap={tapPress}
+          transition={transitionFast}
+          className="mt-1 rounded-btn border-2 border-ink bg-gold px-4 py-2.5 font-sans text-body font-semibold text-ink shadow-resting transition-shadow hover:shadow-elevated hover:bg-gold-hover active:bg-gold-active disabled:opacity-60"
         >
           {busy ? "One sec…" : mode === "signin" ? "Sign in" : "Sign up"}
         </motion.button>

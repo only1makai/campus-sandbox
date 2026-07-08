@@ -16,12 +16,18 @@ function metaLine(post: Post): string {
   return `$${(post.priceCents / 100).toFixed(0)} · ${post.upvotes} upvotes · ${post.locationLabel}`;
 }
 
-/** Compact "shipped" rows for the profile page. Boosted badge only ever
- *  applies to product rows — reviews (the only verified-karma path) exist
- *  on market posts, never app posts. */
-export default function ShippedList({ posts }: { posts: Post[] }) {
+/** Compact post rows, reused across the profile page, Your ships, and
+ *  Upvoted. Boosted badge only ever applies to product rows — reviews (the
+ *  only verified-karma path) exist on market posts, never app posts. */
+export default function ShippedList({
+  posts,
+  emptyLabel = "Nothing shipped yet.",
+}: {
+  posts: Post[];
+  emptyLabel?: string;
+}) {
   if (posts.length === 0) {
-    return <p className="mt-2 text-body text-text-faint">Nothing shipped yet.</p>;
+    return <p className="mt-2 text-body text-text-faint">{emptyLabel}</p>;
   }
 
   return (
@@ -40,7 +46,7 @@ export default function ShippedList({ posts }: { posts: Post[] }) {
             <p className="flex items-center gap-2 font-display text-body font-bold text-ink">
               <span className="truncate">{post.title}</span>
               {post.type === "product" && (
-                <BoostBadge post={post} placement="relative rotate-0 shadow-none px-1.5" />
+                <BoostBadge post={post} placement="relative shadow-none px-1.5" />
               )}
             </p>
             <p className="truncate text-meta text-text-secondary">{metaLine(post)}</p>

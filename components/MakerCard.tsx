@@ -7,9 +7,7 @@ import { MapPin, MessageSquarePlus } from "lucide-react";
 import type { ProductPost, SupportingColor } from "@/types";
 import { reviewPost } from "@/app/actions/karma";
 import BoostBadge from "@/components/BoostBadge";
-
-const INK = "#262014";
-const SPRING = [0.34, 1.56, 0.64, 1] as const;
+import { hoverLift, tapPress, transitionBase, transitionFast } from "@/lib/motion";
 
 const FILL: Record<SupportingColor, string> = {
   gold: "bg-gold",
@@ -36,7 +34,6 @@ const CATEGORY_EMOJI: Record<string, string> = {
 
 /** Masonry variety: photo block heights cycle by index. */
 const PHOTO_HEIGHTS = ["h-44", "h-60", "h-52", "h-64", "h-48", "h-56"];
-const TILTS = [1.5, -1.8, 1.1, -1.3, 2, -1.5];
 
 export default function MakerCard({
   product,
@@ -56,7 +53,6 @@ export default function MakerCard({
   const [stickerKey, setStickerKey] = useState(0);
   const [busy, startTransition] = useTransition();
 
-  const tilt = TILTS[index % TILTS.length];
   const price = `$${(product.priceCents / 100).toFixed(product.priceCents % 100 ? 2 : 0)}`;
 
   const openReview = () => {
@@ -88,12 +84,11 @@ export default function MakerCard({
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: 16, rotate: tilt }}
-      animate={{ opacity: 1, y: 0, rotate: tilt }}
-      whileHover={{ y: -2, rotate: 0, boxShadow: `6px 6px 0 ${INK}` }}
-      transition={{ duration: 0.2, ease: SPRING }}
-      style={{ boxShadow: `4px 4px 0 ${INK}` }}
-      className="mb-8 break-inside-avoid overflow-hidden rounded-card border-2 border-ink bg-card"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={hoverLift}
+      transition={transitionBase}
+      className="mb-8 break-inside-avoid overflow-hidden rounded-card border-2 border-ink bg-card shadow-resting transition-shadow duration-150 hover:shadow-elevated"
     >
       {/* photo block — flat color, big category mark, price tag sticker */}
       <div
@@ -109,7 +104,7 @@ export default function MakerCard({
           {product.statusLabel}
         </span>
 
-        <span className="absolute -right-1 bottom-4 rotate-[-4deg] rounded-chip border-2 border-ink bg-card px-3 py-1 font-display text-card-title text-ink shadow-[2px_2px_0_#262014]">
+        <span className="absolute -right-1 bottom-4 rounded-chip border-2 border-ink bg-card px-3 py-1 font-display text-card-title text-ink shadow-resting">
           {price}
         </span>
         <BoostBadge post={product} placement="absolute bottom-4 left-3" />
@@ -140,10 +135,9 @@ export default function MakerCard({
             type="button"
             onClick={openReview}
             disabled={reviewed}
-            whileTap={{ y: 2, boxShadow: `1px 1px 0 ${INK}` }}
-            transition={{ duration: 0.16, ease: SPRING }}
-            style={{ boxShadow: `3px 3px 0 ${INK}` }}
-            className={`flex w-full items-center justify-center gap-1.5 rounded-btn border-2 border-ink px-3 py-2 font-sans text-meta font-semibold text-ink ${
+            whileTap={tapPress}
+            transition={transitionFast}
+            className={`flex w-full items-center justify-center gap-1.5 rounded-btn border-2 border-ink px-3 py-2 font-sans text-meta font-semibold text-ink shadow-resting transition-shadow hover:shadow-elevated ${
               reviewed ? "bg-live-green text-white" : "bg-cream hover:bg-paper"
             }`}
           >
@@ -157,11 +151,11 @@ export default function MakerCard({
             {stickerKey > 0 && (
               <motion.span
                 key={stickerKey}
-                initial={{ opacity: 0, y: 4, rotate: -8, scale: 0.8 }}
-                animate={{ opacity: [0, 1, 1, 0], y: -34, rotate: [-8, 6, -3], scale: 1 }}
-                transition={{ duration: 0.9, ease: "easeOut" }}
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: [0, 1, 1, 0], y: -30 }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
                 onAnimationComplete={() => setStickerKey(0)}
-                className="pointer-events-none absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-chip border-2 border-ink bg-gold px-2 py-0.5 font-display text-[11px] font-extrabold text-ink shadow-[2px_2px_0_#262014]"
+                className="pointer-events-none absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-chip border-2 border-ink bg-gold px-2 py-0.5 font-display text-[11px] font-extrabold text-ink shadow-resting"
               >
                 +15 karma
               </motion.span>
@@ -175,7 +169,7 @@ export default function MakerCard({
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2, ease: SPRING }}
+              transition={transitionBase}
               className="overflow-hidden"
             >
               <textarea
@@ -195,9 +189,9 @@ export default function MakerCard({
                 type="button"
                 onClick={submitReview}
                 disabled={busy || body.trim().length < 3}
-                whileTap={{ y: 2, boxShadow: `1px 1px 0 ${INK}` }}
-                style={{ boxShadow: `3px 3px 0 ${INK}` }}
-                className="mt-2 w-full rounded-btn border-2 border-ink bg-gold px-3 py-2 font-sans text-meta font-semibold text-ink hover:bg-gold-hover active:bg-gold-active disabled:opacity-60"
+                whileTap={tapPress}
+                transition={transitionFast}
+                className="mt-2 w-full rounded-btn border-2 border-ink bg-gold px-3 py-2 font-sans text-meta font-semibold text-ink shadow-resting transition-shadow hover:shadow-elevated hover:bg-gold-hover active:bg-gold-active disabled:opacity-60"
               >
                 {busy ? "Posting…" : "Post review (+15 to the maker)"}
               </motion.button>
