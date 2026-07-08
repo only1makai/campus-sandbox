@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, MessageSquarePlus } from "lucide-react";
-import type { ProductPost, SupportingColor } from "@/types";
+import type { ShopPost, SupportingColor } from "@/types";
 import { reviewPost } from "@/app/actions/karma";
 import BoostBadge from "@/components/BoostBadge";
 import { hoverLift, tapPress, transitionBase, transitionFast } from "@/lib/motion";
@@ -17,7 +17,7 @@ const FILL: Record<SupportingColor, string> = {
   grape: "bg-grape",
 };
 
-const STATUS_PILL: Record<ProductPost["status"], string> = {
+const STATUS_PILL: Record<ShopPost["status"], string> = {
   in_stock: "bg-live-green text-white",
   made_to_order: "bg-gold text-ink",
   sold_out: "bg-ink text-paper",
@@ -40,7 +40,7 @@ export default function MakerCard({
   index,
   isAuthed,
 }: {
-  product: ProductPost;
+  product: ShopPost;
   index: number;
   isAuthed: boolean;
 }) {

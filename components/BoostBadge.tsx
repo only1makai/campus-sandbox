@@ -1,6 +1,6 @@
 "use client";
 
-import type { AppPost, ProductPost } from "@/types";
+import type { AppPost, ShopPost } from "@/types";
 
 /**
  * BOOSTED sticker — renders only while a post's verified-karma boost window
@@ -11,7 +11,7 @@ export default function BoostBadge({
   post,
   placement = "absolute bottom-3 right-3",
 }: {
-  post: AppPost | ProductPost;
+  post: AppPost | ShopPost;
   placement?: string;
 }) {
   const expiresAt = post.boostExpiresAt ? Date.parse(post.boostExpiresAt) : null;

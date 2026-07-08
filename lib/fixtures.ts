@@ -1,5 +1,5 @@
 // Relative import so the seed script can run this file outside Next's alias.
-import type { AppPost, ProductPost, Profile } from "../types";
+import type { AppPost, ShopPost, Profile } from "../types";
 
 /** Seeded local data — the Beta Board reads this, never the network. */
 
@@ -160,8 +160,9 @@ export const apps: AppPost[] = [
 ];
 
 // ---------------------------------------------------------------------------
-// Makers Market — 6 student makers (physical goods). Fallback data when env
-// is empty; the live market reads Supabase.
+// Marketplace ('shop') — 6 recurring student sellers. Fallback data when env
+// is empty; the live market reads Supabase. (Thrift has no fixtures — the
+// thrift feed returns [] without a database.)
 // ---------------------------------------------------------------------------
 
 const petalpress: Profile = {
@@ -218,10 +219,10 @@ const hookedslug: Profile = {
   avatarColor: "grape",
 };
 
-export const products: ProductPost[] = [
+export const shopListings: ShopPost[] = [
   {
     id: "prod-slugstem",
-    type: "product",
+    type: "shop",
     author: petalpress,
     title: "Slug & Stem",
     description: "Dried-flower bouquets foraged (ethically) from the meadow edges.",
@@ -238,7 +239,7 @@ export const products: ProductPost[] = [
   },
   {
     id: "prod-kilnkelp",
-    type: "product",
+    type: "shop",
     author: mudslinger,
     title: "Kiln & Kelp",
     description: "Hand-thrown mugs glazed in fog gradients. Every one is lopsided on purpose.",
@@ -255,7 +256,7 @@ export const products: ProductPost[] = [
   },
   {
     id: "prod-slugstickers",
-    type: "product",
+    type: "shop",
     author: stickyslug,
     title: "Banana Slug Stickers",
     description: "Waterproof vinyl slugs for laptops, water bottles, and parking permits.",
@@ -272,7 +273,7 @@ export const products: ProductPost[] = [
   },
   {
     id: "prod-redwoodreads",
-    type: "product",
+    type: "shop",
     author: foldedpine,
     title: "Redwood Reads",
     description: "Hand-bound journals with recycled paper and bark-pressed covers.",
@@ -289,7 +290,7 @@ export const products: ProductPost[] = [
   },
   {
     id: "prod-fogcandle",
-    type: "product",
+    type: "shop",
     author: waxpoetic,
     title: "Fog Candle Co.",
     description: "Soy candles in scents like First Rain, Eucalyptus Grove, and Dining Hall Waffle.",
@@ -306,7 +307,7 @@ export const products: ProductPost[] = [
   },
   {
     id: "prod-loopthreads",
-    type: "product",
+    type: "shop",
     author: hookedslug,
     title: "Loop Threads",
     description: "Chunky crochet beanies in banana-slug yellow. Warm enough for the fog line.",

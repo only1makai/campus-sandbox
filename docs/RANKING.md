@@ -24,8 +24,9 @@ boost = 0                          when no active window
 - The `boosted` bool is UI-legacy; ranking and the badge both derive from the
   ledger + `boost_expires_at`, never the bool.
 - Both surfaces (Beta Board, Makers Market) query `ranked_posts` — no
-  duplicated formula. In practice only market posts can boost today, because
-  reviews are the only verified-karma action and they are product-only.
+  duplicated formula. In practice only `shop` posts can boost today, because
+  reviews are the only verified-karma action and they are shop-only (Session
+  12 re-scoped them from `product`; thrift can never boost). See `COMMERCE.md`.
 
 ## KNOWN LIMITATION — collusion (deliberately deferred, NOT solved)
 

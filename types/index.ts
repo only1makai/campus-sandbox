@@ -41,15 +41,16 @@ export interface AppPost extends PostBase {
   boosted?: boolean;
 }
 
-export type ProductStatus = "in_stock" | "made_to_order" | "sold_out";
+export type ShopStatus = "in_stock" | "made_to_order" | "sold_out";
 
-/** Makers Market — physical goods by student makers. */
-export interface ProductPost extends PostBase {
-  type: "product";
+/** Marketplace ('shop') — recurring student sellers (the Makers Market).
+ *  Reviews and the verified-karma boost apply to this category ONLY. */
+export interface ShopPost extends PostBase {
+  type: "shop";
   priceCents: number;
   /** first tag doubles as the category (ceramics, stickers, …) */
   category: string;
-  status: ProductStatus;
+  status: ShopStatus;
   statusLabel: string;
   bannerColor: SupportingColor;
   locationLabel: string;
@@ -57,9 +58,41 @@ export interface ProductPost extends PostBase {
   reviewCount: number;
 }
 
-export type Post = AppPost | ProductPost;
+export type ThriftStatus = "available" | "sold" | "expired";
 
-export type KarmaAction = "upvote_received" | "cta_click" | "post_shipped";
+/** Thrift — one-time used-goods sales (move-out items, a used fridge). No
+ *  reviews, no boost: feed ordering is newest-first, full stop. Auto-expires
+ *  ~21 days after creation (expiresAt); expired/sold listings drop out. */
+export interface ThriftPost extends PostBase {
+  type: "thrift";
+  priceCents: number;
+  /** first tag doubles as the category */
+  category: string;
+  status: ThriftStatus;
+  statusLabel: string;
+  bannerColor: SupportingColor;
+  locationLabel: string;
+  tags: string[];
+  /** end of the 21-day listing window; the feed hides listings past this */
+  expiresAt?: string | null;
+}
+
+/** The two commerce categories share a card shape but never a ranking path. */
+export type MarketPost = ShopPost | ThriftPost;
+
+export type Post = AppPost | ShopPost | ThriftPost;
+
+/** Read-only seller credibility aggregate (display fact, never ranking). */
+export interface SellerRating {
+  count: number;
+  avg: number | null;
+}
+
+export type KarmaAction =
+  | "upvote_received"
+  | "cta_click"
+  | "post_shipped"
+  | "review_received";
 
 /** Mirrors `karma_ledger` — recorded, never consumed by feed ranking (yet). */
 export interface KarmaEvent {

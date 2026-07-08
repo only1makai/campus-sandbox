@@ -1,14 +1,14 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import type { ProductPost } from "@/types";
+import type { ShopPost } from "@/types";
 import MakerCard from "@/components/MakerCard";
 
 export default function MakersMarket({
   products,
   isAuthed,
 }: {
-  products: ProductPost[];
+  products: ShopPost[];
   isAuthed: boolean;
 }) {
   const query = (useSearchParams().get("q") ?? "").trim().toLowerCase();

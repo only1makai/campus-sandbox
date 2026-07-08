@@ -45,7 +45,8 @@ exactly why the shared row stays clean.
 
 | Object | Notes |
 |---|---|
-| `posts` (+ `post_type` enum) | Board apps + market products. Public read; writes via Sandbox server code only. |
+| `posts` (+ `post_type` enum `app`/`shop`/`thrift`) | Board apps + marketplace + thrift. Public read; writes via Sandbox server code only. Commerce detail in `COMMERCE.md`. |
+| `requests`, `request_messages`, `seller_ratings` | Session-12 commerce. Requests/messages are buyer/seller-only (RLS) and ephemeral; ratings are permanent. See `COMMERCE.md`. |
 | `karma_ledger` | Append-only. **No RLS read policy at all** — the only public window into it is `profile_reputation()`. `verified` column distinguishes verified karma (reviews, +15) from cosmetic (upvotes +1, CTA clicks +5). |
 | `reviews` | Public read; writes only via `record_review()`. |
 | `record_upvote` / `record_cta_click` / `record_review` | `authenticated`-only, derive the actor from `auth.uid()`. |

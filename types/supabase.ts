@@ -19,7 +19,7 @@ export type ProfileRow = {
 
 export type PostRow = {
   id: string;
-  type: "app" | "product";
+  type: "app" | "shop" | "thrift";
   author: string;
   title: string;
   description: string;
@@ -36,6 +36,8 @@ export type PostRow = {
   price_cents: number | null;
   location_label: string | null;
   boost_expires_at: string | null;
+  /** thrift only: listing auto-expiry (~21d); null for app/shop */
+  expires_at: string | null;
   created_at: string;
 };
 
@@ -50,6 +52,37 @@ export type ReviewRow = {
   post_id: string;
   author: string;
   body: string;
+  created_at: string;
+};
+
+export type RequestStatus = "open" | "fulfilled" | "declined" | "expired";
+
+export type RequestRow = {
+  id: string;
+  post_id: string;
+  buyer_id: string;
+  /** denormalized from posts.author */
+  seller_id: string;
+  status: RequestStatus;
+  created_at: string;
+  last_activity_at: string;
+};
+
+export type RequestMessageRow = {
+  id: string;
+  request_id: string;
+  sender_id: string;
+  body: string;
+  created_at: string;
+};
+
+/** request_id has no FK — a rating outlives its (ephemeral) request. */
+export type SellerRatingRow = {
+  id: string;
+  request_id: string;
+  rater_id: string | null;
+  seller_id: string;
+  stars: number;
   created_at: string;
 };
 
@@ -94,6 +127,26 @@ export type Database = {
         Update: Partial<ReviewRow>;
         Relationships: [];
       };
+      requests: {
+        Row: RequestRow;
+        Insert: Partial<RequestRow> & Pick<RequestRow, "post_id" | "buyer_id" | "seller_id">;
+        Update: Partial<RequestRow>;
+        Relationships: [];
+      };
+      request_messages: {
+        Row: RequestMessageRow;
+        Insert: Partial<RequestMessageRow> &
+          Pick<RequestMessageRow, "request_id" | "sender_id" | "body">;
+        Update: Partial<RequestMessageRow>;
+        Relationships: [];
+      };
+      seller_ratings: {
+        Row: SellerRatingRow;
+        Insert: Partial<SellerRatingRow> &
+          Pick<SellerRatingRow, "request_id" | "seller_id" | "stars">;
+        Update: Partial<SellerRatingRow>;
+        Relationships: [];
+      };
     };
     Views: {
       ranked_posts: {
@@ -115,8 +168,17 @@ export type Database = {
         Returns: undefined;
       };
       profile_reputation: { Args: { p_profile_id: string }; Returns: unknown };
+      create_request: { Args: { p_post_id: string }; Returns: string };
+      send_request_message: { Args: { p_request_id: string; p_body: string }; Returns: string };
+      update_request_status: {
+        Args: { p_request_id: string; p_status: string };
+        Returns: undefined;
+      };
+      update_thrift_status: { Args: { p_post_id: string; p_status: string }; Returns: undefined };
+      rate_seller: { Args: { p_request_id: string; p_stars: number }; Returns: undefined };
+      seller_rating_summary: { Args: { p_seller_id: string }; Returns: unknown };
     };
-    Enums: { post_type: "app" | "product" };
+    Enums: { post_type: "app" | "shop" | "thrift"; request_status: RequestStatus };
     CompositeTypes: Record<string, never>;
   };
 }

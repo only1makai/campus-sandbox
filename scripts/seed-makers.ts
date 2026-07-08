@@ -1,13 +1,13 @@
 import { createClient } from "@supabase/supabase-js";
 import { loadEnv } from "./env.mjs";
-import { products } from "../lib/fixtures";
+import { shopListings as products } from "../lib/fixtures";
 import type { Profile } from "../types";
 
 /**
- * Seeds the 6 Makers Market products from lib/fixtures.ts.
+ * Seeds the 6 Marketplace ('shop') sellers from lib/fixtures.ts.
  * Same pattern as scripts/seed.ts: maker profiles are backed by real
  * auth.users rows (admin API, @ucsc.edu emails to pass the gate trigger).
- * Idempotent: skips if any type='product' posts exist.
+ * Idempotent: skips if any type='shop' posts exist.
  *
  * Run: pnpm exec tsx scripts/seed-makers.ts
  */
@@ -27,12 +27,12 @@ async function main() {
   const { count, error: countError } = await db
     .from("posts")
     .select("*", { count: "exact", head: true })
-    .eq("type", "product");
+    .eq("type", "shop");
   if (countError) {
     throw new Error(`could not check posts table: ${countError.message}`);
   }
   if ((count ?? 0) > 0) {
-    console.log(`posts already has ${count} product rows — skipping seed.`);
+    console.log(`posts already has ${count} shop rows — skipping seed.`);
     return;
   }
 
@@ -69,7 +69,7 @@ async function main() {
 
   for (const product of products) {
     const { error } = await db.from("posts").insert({
-      type: "product",
+      type: "shop",
       author: idByHandle.get(product.author.handle)!,
       title: product.title,
       description: product.description,

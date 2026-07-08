@@ -17,8 +17,8 @@ function metaLine(post: Post): string {
 }
 
 /** Compact post rows, reused across the profile page, Your ships, and
- *  Upvoted. Boosted badge only ever applies to product rows — reviews (the
- *  only verified-karma path) exist on market posts, never app posts. */
+ *  Upvoted. Boosted badge only ever applies to shop rows — reviews (the only
+ *  verified-karma path) exist on shop posts, never app or thrift posts. */
 export default function ShippedList({
   posts,
   emptyLabel = "Nothing shipped yet.",
@@ -45,7 +45,7 @@ export default function ShippedList({
           <div className="min-w-0 flex-1">
             <p className="flex items-center gap-2 font-display text-body font-bold text-ink">
               <span className="truncate">{post.title}</span>
-              {post.type === "product" && (
+              {post.type === "shop" && (
                 <BoostBadge post={post} placement="relative shadow-none px-1.5" />
               )}
             </p>

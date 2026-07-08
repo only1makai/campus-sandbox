@@ -85,4 +85,6 @@ Prior UI/styling discussion can be summarized more aggressively.
 ## Reference docs (read on demand, don't preload)
 - `/docs/IDENTITY.md` — full identity boundary (shared vs Sandbox-owned tables)
 - `/docs/RANKING.md` — ranking formula, boost cap/window, collusion limitation
+- `/docs/COMMERCE.md` — categories (app/shop/thrift), the ephemeral Request
+  system, seller ratings, ephemeral-vs-permanent retention + no-ranking guardrails
 - `/docs/CALINKS_ONBOARDING.md` — how a second product connects to this identity layer
