@@ -31,15 +31,13 @@ export default function ThriftFeed({
       !query ||
       p.title.toLowerCase().includes(query) ||
       p.description.toLowerCase().includes(query) ||
-      p.author.handle.toLowerCase().includes(query),
+      p.author.handle.toLowerCase().includes(query) ||
+      p.author.displayName.toLowerCase().includes(query),
   );
 
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-12">
-      <p className="text-meta font-semibold uppercase tracking-[0.14em] text-text-faint">
-        Campus Sandbox · UC Santa Cruz
-      </p>
-      <h1 className="mt-2 font-display text-display text-ink">Thrift</h1>
+      <h1 className="font-display text-display text-ink">Thrift</h1>
       <p className="mt-1 text-body text-text-secondary">
         Secondhand and one-time finds from fellow Slugs · {listings.length} listings
       </p>
@@ -70,12 +68,11 @@ export default function ThriftFeed({
           {visible.length === 0 && (
             <p className="mt-8 text-body text-text-faint">No finds match “{query}”.</p>
           )}
-          <div className="mt-8 columns-1 gap-8 sm:columns-2 lg:columns-3">
-            {visible.map((product, i) => (
+          <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {visible.map((product) => (
               <MakerCard
                 key={product.id}
                 product={product}
-                index={i}
                 isAuthed={isAuthed}
                 currentUserId={currentUserId}
                 rating={ratings[product.author.id]}

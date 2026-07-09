@@ -3,39 +3,15 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, MapPin, MessageSquarePlus } from "lucide-react";
+import { Clock, MessageSquarePlus } from "lucide-react";
 import type { MarketPost, SellerRating } from "@/types";
 import { reviewPost } from "@/app/actions/karma";
 import BoostBadge from "@/components/BoostBadge";
 import RequestButton from "@/components/RequestButton";
 import MarkSoldButton from "@/components/MarkSoldButton";
 import SellerBadge from "@/components/SellerBadge";
-import { RatingStarsFor } from "@/components/RatingStars";
 import { FILL } from "@/lib/colors";
 import { hoverLift, tapPress, transitionBase, transitionFast } from "@/lib/motion";
-
-/** Covers both shop (in_stock/made_to_order/sold_out) and thrift
- *  (available/sold/expired) statuses — the two share this card shape. */
-const STATUS_PILL: Record<string, string> = {
-  in_stock: "bg-live-green text-white",
-  made_to_order: "bg-gold text-ink",
-  sold_out: "bg-ink text-paper",
-  available: "bg-live-green text-white",
-  sold: "bg-ink text-paper",
-  expired: "bg-border-soft text-text-secondary",
-};
-
-const CATEGORY_EMOJI: Record<string, string> = {
-  flowers: "🌼",
-  ceramics: "☕",
-  stickers: "🍌",
-  journals: "📓",
-  candles: "🕯️",
-  fiber: "🧶",
-};
-
-/** Masonry variety: photo block heights cycle by index. */
-const PHOTO_HEIGHTS = ["h-44", "h-60", "h-52", "h-64", "h-48", "h-56"];
 
 /** Thrift "time remaining" — coarse (days, then hours) to stay hydration-stable. */
 function timeLeft(expiresAt?: string | null): string | null {
@@ -57,14 +33,14 @@ function daysUntil(expiresAt?: string | null): number | null {
 
 export default function MakerCard({
   product,
-  index,
   isAuthed,
   readOnly = false,
   rating,
   currentUserId,
 }: {
   product: MarketPost;
-  index: number;
+  /** Kept for call-site compatibility; layout no longer varies by index. */
+  index?: number;
   isAuthed: boolean;
   /** Landing preview: strip every action (request/review/mark-sold). */
   readOnly?: boolean;
@@ -92,6 +68,7 @@ export default function MakerCard({
   const daysLeft = isThrift && !isSold ? daysUntil(product.expiresAt) : null;
   const urgent = daysLeft !== null && daysLeft <= 2;
   const price = `$${(product.priceCents / 100).toFixed(product.priceCents % 100 ? 2 : 0)}`;
+  const category = (product.category ?? "goods").toUpperCase();
 
   // Review is shop-only, write-gated, never on your own shop or in preview.
   const showReview = product.type === "shop" && !readOnly && !isOwn;
@@ -128,84 +105,64 @@ export default function MakerCard({
       animate={{ opacity: 1, y: 0 }}
       whileHover={hoverLift}
       transition={transitionBase}
-      className={`mb-8 break-inside-avoid overflow-hidden rounded-card border-2 border-ink bg-card shadow-resting transition-shadow duration-150 hover:shadow-elevated ${
+      className={`flex flex-row overflow-hidden rounded-card border-2 border-ink bg-card shadow-resting transition-shadow duration-150 hover:shadow-elevated sm:flex-col ${
         isSold ? "opacity-75" : ""
       }`}
     >
-      {/* photo block — flat color, big category mark, price tag sticker */}
+      {/* color block — left rail on mobile, top banner on desktop */}
       <div
-        className={`relative flex items-center justify-center ${PHOTO_HEIGHTS[index % PHOTO_HEIGHTS.length]} ${FILL[product.bannerColor]}`}
+        className={`relative flex w-28 shrink-0 items-center justify-center p-3 sm:h-32 sm:w-full ${FILL[product.bannerColor]}`}
       >
-        <span
-          className={`text-6xl ${isSold ? "opacity-40" : ""}`}
-          role="img"
-          aria-label={product.category}
-        >
-          {CATEGORY_EMOJI[product.category] ?? "🛠️"}
+        <span className="text-center text-[11px] font-semibold uppercase tracking-[0.14em] text-ink/60">
+          {category}
         </span>
 
         {/* sold: dim + stamp */}
         {isSold && (
           <span className="absolute inset-0 flex items-center justify-center bg-ink/25">
-            <span className="-rotate-6 rounded-chip border-2 border-ink bg-card px-4 py-1 font-display text-heading font-extrabold uppercase tracking-wide text-ink shadow-resting">
+            <span className="-rotate-6 rounded-chip border-2 border-ink bg-card px-3 py-1 font-display text-card-title font-extrabold uppercase tracking-wide text-ink shadow-resting">
               Sold
             </span>
           </span>
         )}
 
-        <span
-          className={`absolute left-3 top-3 rounded-full px-3 py-1 font-sans text-meta ${STATUS_PILL[product.status] ?? "bg-card text-ink"}`}
-        >
-          {product.statusLabel}
-        </span>
-
         {/* thrift leads with time remaining; ≤2 days reads urgent (tomato) */}
         {remaining && (
           <span
-            className={`absolute right-3 top-3 flex items-center gap-1 rounded-full border border-ink px-2.5 py-1 font-sans text-meta font-semibold ${
+            className={`absolute left-2 top-2 flex items-center gap-1 rounded-full border border-ink px-2 py-0.5 font-sans text-[11px] font-semibold ${
               urgent ? "bg-tomato text-white" : "bg-card text-ink"
             }`}
           >
-            <Clock size={12} />
+            <Clock size={11} />
             {remaining}
           </span>
         )}
 
-        <span className="absolute -right-1 bottom-4 rounded-chip border-2 border-ink bg-card px-3 py-1 font-display text-card-title text-ink shadow-resting">
+        <span className="absolute -bottom-2 right-2 rounded-chip border-2 border-ink bg-card px-2.5 py-0.5 font-display text-card-title text-ink shadow-resting sm:bottom-3">
           {price}
         </span>
         {product.type === "shop" && (
-          <BoostBadge post={product} placement="absolute bottom-4 left-3" />
+          <BoostBadge post={product} placement="absolute bottom-3 left-3" />
         )}
       </div>
 
-      <div className="flex flex-col gap-2 p-4">
+      {/* content */}
+      <div className="flex min-w-0 flex-1 flex-col gap-2 p-4">
+        <SellerBadge profile={product.author} rating={rating} />
+
         <h3 className="font-display text-card-title text-ink">{product.title}</h3>
-
-        {/* seller credibility: star rating (display only, never ranking) */}
-        <RatingStarsFor rating={rating} />
-
-        <p className="text-body text-text-secondary">{product.description}</p>
-
-        <div className="flex items-center justify-between">
-          <SellerBadge profile={product.author} />
-          <span className="flex items-center gap-1 text-meta text-text-faint">
-            <MapPin size={13} />
-            {product.locationLabel}
-          </span>
-        </div>
 
         {/* primary action — request / owner / sold (hidden in read-only preview) */}
         {!readOnly &&
           (isSold ? (
-            <p className="mt-2 text-center text-meta font-semibold text-text-faint">
+            <p className="mt-1 text-center text-meta font-semibold text-text-faint">
               No longer available
             </p>
           ) : isOwn ? (
             isThrift ? (
               <MarkSoldButton postId={product.id} />
             ) : (
-              <p className="mt-2 text-center text-meta text-text-faint">Your listing</p>
+              <p className="mt-1 text-center text-meta text-text-faint">Your listing</p>
             )
           ) : (
             <RequestButton postId={product.id} />

@@ -15,11 +15,16 @@ const FILL: Record<string, string> = {
 export default function Header({ user }: { user: CurrentUser | null }) {
   return (
     <header className="flex items-center gap-4 border-b-2 border-ink bg-cream px-6 py-3">
-      <Link
-        href="/"
-        className="shrink-0 rounded-chip border-2 border-ink bg-card px-3 py-1 font-display text-meta font-extrabold tracking-wide text-ink shadow-resting"
-      >
-        CAMPUS SANDBOX
+      <Link href="/" className="flex shrink-0 items-center gap-2 text-ink">
+        <span
+          className="flex h-8 w-8 items-center justify-center rounded-chip border-2 border-ink bg-gold text-lg shadow-resting"
+          aria-hidden
+        >
+          🐌
+        </span>
+        <span className="font-display text-body font-extrabold lowercase tracking-tight text-ink">
+          campus sandbox
+        </span>
       </Link>
 
       <SearchInput />
@@ -27,7 +32,7 @@ export default function Header({ user }: { user: CurrentUser | null }) {
       <div className="ml-auto flex shrink-0 items-center gap-3">
         <Link
           href="/sell"
-          className="flex items-center gap-1.5 rounded-btn border-2 border-ink bg-card px-3 py-1.5 text-meta font-semibold text-ink shadow-resting transition-shadow hover:shadow-elevated hover:bg-paper"
+          className="flex items-center gap-1.5 rounded-btn border-2 border-ink bg-gold px-3 py-1.5 text-meta font-semibold text-ink shadow-resting transition-shadow hover:shadow-elevated hover:bg-gold-hover"
         >
           <Plus size={14} />
           Sell

@@ -48,7 +48,7 @@ export default function SearchInput() {
         type="search"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder="Search apps, makers, colleges"
+        placeholder="Search apps, goods, sellers"
         className="w-full rounded-btn border-2 border-border-soft bg-cream py-2 pl-9 pr-3 text-body text-ink placeholder:text-text-faint focus:border-ink focus:bg-card focus:outline-none"
       />
     </div>

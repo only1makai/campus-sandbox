@@ -26,7 +26,8 @@ export default function MakersMarket({
       !query ||
       p.title.toLowerCase().includes(query) ||
       p.description.toLowerCase().includes(query) ||
-      p.author.handle.toLowerCase().includes(query),
+      p.author.handle.toLowerCase().includes(query) ||
+      p.author.displayName.toLowerCase().includes(query),
   );
 
   // "Top rated" keeps the server's ranked order (score = upvotes + verified
@@ -39,35 +40,27 @@ export default function MakersMarket({
 
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-12">
-      <p className="text-meta font-semibold uppercase tracking-[0.14em] text-text-faint">
-        Campus Sandbox · UC Santa Cruz
-      </p>
-      <h1 className="mt-2 font-display text-display text-ink">Marketplace</h1>
-      <p className="mt-1 text-body text-text-secondary">
-        Recurring storefronts from verified UCSC sellers · {products.length} listings
-      </p>
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h1 className="font-display text-display text-ink">Marketplace</h1>
+          <p className="mt-1 text-body text-text-secondary">
+            Recurring storefronts from verified UCSC sellers · {products.length} listings
+          </p>
+        </div>
 
-      {/* sort control — only the two orders the backend already supports */}
-      <div className="mt-5 flex items-center gap-2">
-        {(
-          [
-            ["top", "Top rated"],
-            ["newest", "Newest"],
-          ] as const
-        ).map(([key, label]) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => setSort(key)}
-            className={`rounded-full border-2 px-4 py-1.5 font-sans text-meta font-semibold ${
-              sort === key
-                ? "border-ink bg-ink text-white"
-                : "border-border-soft bg-cream text-ink hover:border-ink"
-            }`}
+        {/* sort control — only the two orders the backend already supports */}
+        <label className="flex shrink-0 items-center gap-2 rounded-btn border-2 border-ink bg-card px-3 py-1.5 text-meta font-semibold text-ink shadow-resting">
+          Sort:
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value as Sort)}
+            className="cursor-pointer bg-transparent font-semibold text-ink focus:outline-none"
+            aria-label="Sort listings"
           >
-            {label}
-          </button>
-        ))}
+            <option value="top">Top rated</option>
+            <option value="newest">Newest</option>
+          </select>
+        </label>
       </div>
 
       {visible.length === 0 && (
@@ -76,13 +69,11 @@ export default function MakersMarket({
         </p>
       )}
 
-      {/* masonry: CSS columns, visually distinct from the board's uniform grid */}
-      <div className="mt-8 columns-1 gap-8 sm:columns-2 lg:columns-3">
-        {visible.map((product, i) => (
+      <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {visible.map((product) => (
           <MakerCard
             key={product.id}
             product={product}
-            index={i}
             isAuthed={isAuthed}
             currentUserId={currentUserId}
             rating={ratings[product.author.id]}

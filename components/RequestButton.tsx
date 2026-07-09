@@ -47,7 +47,7 @@ export default function RequestButton({ postId }: { postId: string }) {
         }}
         whileTap={tapPress}
         transition={transitionFast}
-        className="flex w-full items-center justify-center gap-1.5 rounded-btn border-2 border-ink bg-gold px-3 py-2 font-sans text-meta font-semibold text-ink shadow-resting transition-shadow hover:shadow-elevated hover:bg-gold-hover active:bg-gold-active"
+        className="flex w-full items-center justify-center gap-1.5 rounded-btn border-2 border-ink bg-card px-3 py-2 font-sans text-meta font-semibold text-ink shadow-resting transition-shadow hover:shadow-elevated hover:bg-paper"
       >
         <MessageCircle size={15} />
         {open ? "Close" : "Request"}

@@ -12,6 +12,7 @@ export default async function AppLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const user = await getCurrentUser();
+  const youHref = user?.profile ? `/u/${user.profile.handle}` : "/login";
 
   return (
     <>
@@ -20,7 +21,7 @@ export default async function AppLayout({
         <Sidebar user={user} />
         <div className="flex min-w-0 flex-1 flex-col pb-16 md:pb-0">{children}</div>
       </div>
-      <MobileNav />
+      <MobileNav youHref={youHref} />
     </>
   );
 }
