@@ -36,9 +36,12 @@ const STATUS_PILL: Record<AppPost["status"], string> = {
 export default function AppCard({
   app,
   isAuthed,
+  readOnly = false,
 }: {
   app: AppPost;
   isAuthed: boolean;
+  /** Landing preview: strip all interactive affordances (no upvote, no CTA link). */
+  readOnly?: boolean;
 }) {
   const router = useRouter();
   const [upvoted, setUpvoted] = useState(false);
@@ -135,6 +138,23 @@ export default function AppCard({
         </div>
 
         {/* footer */}
+        {readOnly ? (
+          <div className="mt-3 flex items-stretch gap-2">
+            <span
+              className={`flex flex-1 items-center justify-center rounded-btn border-2 px-4 py-2 text-center font-sans text-meta font-semibold shadow-resting ${
+                betaFull
+                  ? "border-dashed border-text-faint bg-paper text-text-secondary"
+                  : "border-ink bg-gold text-ink"
+              }`}
+            >
+              {betaFull ? "Beta full — join waitlist" : app.ctaLabel}
+            </span>
+            <div className="flex items-center gap-1.5 rounded-btn border-2 border-ink bg-card px-3 py-2 font-sans text-meta font-semibold text-ink shadow-resting">
+              <ArrowBigUp size={16} />
+              {count}
+            </div>
+          </div>
+        ) : (
         <div className="mt-3 flex items-stretch gap-2">
           <motion.a
             href={app.ctaUrl}
@@ -190,6 +210,7 @@ export default function AppCard({
             </AnimatePresence>
           </div>
         </div>
+        )}
       </div>
     </motion.article>
   );

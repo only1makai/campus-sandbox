@@ -8,7 +8,15 @@ import { fadeUp, tapPress, transitionFast } from "@/lib/motion";
 const inputClass =
   "w-full rounded-btn border-2 border-ink bg-cream px-3 py-2 text-body text-ink placeholder:text-text-faint focus:outline-none focus:bg-card";
 
-export default function AuthCard() {
+export default function AuthCard({
+  next,
+  contextLine,
+}: {
+  /** validated deep-link destination to land on after auth */
+  next?: string;
+  /** contextual sub-heading for the current destination, if known */
+  contextLine?: string;
+} = {}) {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,8 +31,8 @@ export default function AuthCard() {
     startTransition(async () => {
       const result =
         mode === "signin"
-          ? await signInAction({ email, password })
-          : await signUpAction({ email, password, handle, displayName });
+          ? await signInAction({ email, password, next })
+          : await signUpAction({ email, password, handle, displayName, next });
       // redirect() throws past this point on success
       if (result && !result.ok) setError(result.error ?? "Something went wrong.");
       else if (result?.confirmationPending) setPendingConfirmation(true);
@@ -57,6 +65,9 @@ export default function AuthCard() {
       <h1 className="font-display text-heading text-ink">
         {mode === "signin" ? "Welcome back, slug" : "Join the sandbox"}
       </h1>
+      {contextLine && (
+        <p className="mt-1 text-meta font-semibold text-gold-active">{contextLine}</p>
+      )}
       <p className="mt-1 text-body text-text-secondary">
         {mode === "signin"
           ? "Sign in to upvote and ship."

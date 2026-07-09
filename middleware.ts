@@ -31,7 +31,27 @@ export async function middleware(request: NextRequest) {
   );
 
   // Touch the session so expired tokens get refreshed and cookies re-issued.
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { pathname } = request.nextUrl;
+
+  // Logged-out "/" → serve the marketing landing WITHOUT changing the URL, so
+  // the landing (a (marketing) route) escapes the (app) chrome. Logged-in users
+  // fall through to (app)/page.tsx (the Beta Board feed).
+  if (pathname === "/" && !user) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/landing";
+    const rewrite = NextResponse.rewrite(url, { request });
+    response.cookies.getAll().forEach((c) => rewrite.cookies.set(c));
+    return rewrite;
+  }
+
+  // A signed-in user should never sit on the marketing landing.
+  if (pathname === "/landing" && user) {
+    return NextResponse.redirect(new URL("/", request.url));
+  }
 
   return response;
 }

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { supabaseServer } from "@/lib/supabase/server";
 import { isUcscEmail, isValidHandle } from "@/lib/identity";
+import { safeInternalPath } from "@/lib/redirect";
 
 export interface AuthResult {
   ok: boolean;
@@ -21,6 +22,8 @@ export async function signUpAction(input: {
   password: string;
   handle: string;
   displayName: string;
+  /** deep-link destination to land on after email confirmation */
+  next?: string;
 }): Promise<AuthResult> {
   const email = input.email.trim().toLowerCase();
   if (!isUcscEmail(email)) {
@@ -37,6 +40,9 @@ export async function signUpAction(input: {
     };
   }
 
+  // Carry the (validated) deep link through the email round-trip via the
+  // confirmation URL — a cookie wouldn't survive the click on another device.
+  const next = safeInternalPath(input.next);
   const origin = (await headers()).get("origin") ?? "http://localhost:3000";
   const supabase = await supabaseServer();
   const { data, error } = await supabase.auth.signUp({
@@ -44,7 +50,7 @@ export async function signUpAction(input: {
     password: input.password,
     options: {
       data: { handle, display_name: input.displayName.trim() || handle },
-      emailRedirectTo: `${origin}/auth/confirm`,
+      emailRedirectTo: `${origin}/auth/confirm?next=${encodeURIComponent(next)}`,
     },
   });
 
@@ -52,12 +58,14 @@ export async function signUpAction(input: {
 
   // With email confirmation enabled there's no session yet.
   if (!data.session) return { ok: true, confirmationPending: true };
-  redirect("/");
+  redirect(next);
 }
 
 export async function signInAction(input: {
   email: string;
   password: string;
+  /** deep-link destination to land on after sign-in */
+  next?: string;
 }): Promise<AuthResult> {
   const supabase = await supabaseServer();
   const { error } = await supabase.auth.signInWithPassword({
@@ -65,7 +73,7 @@ export async function signInAction(input: {
     password: input.password,
   });
   if (error) return { ok: false, error: error.message };
-  redirect("/");
+  redirect(safeInternalPath(input.next));
 }
 
 export async function signOutAction(): Promise<void> {

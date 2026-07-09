@@ -170,6 +170,26 @@ export async function fetchThriftPosts(): Promise<ThriftPost[]> {
 }
 
 /**
+ * Read-only thrift preview for the public landing page. UNLIKE fetchThriftPosts
+ * (the future live feed, which shows only available listings), this deliberately
+ * includes sold/expired listings — newest first, capped — so the landing can
+ * render the "sold" state. No ranking influence (base `posts`, created_at only).
+ */
+export async function fetchThriftPreview(limit = 4): Promise<ThriftPost[]> {
+  if (envMissing()) return [];
+
+  const { data, error } = await supabaseAnon()
+    .from("posts")
+    .select("*, author_profile:profiles!posts_author_fkey(*)")
+    .eq("type", "thrift")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) throw new Error(`fetchThriftPreview failed: ${error.message}`);
+  return (data as unknown as (PostRow & { author_profile: ProfileRow })[]).map(toThriftPost);
+}
+
+/**
  * Posts (apps + shop + thrift) by one author, for the profile page's "shipped"
  * list. Same score-then-recency ordering; boost is only ever non-zero on shop
  * rows (reviews are the only verified-karma path).

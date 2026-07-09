@@ -1,9 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Instrument_Sans } from "next/font/google";
-import Header from "@/components/Header";
-import Sidebar from "@/components/Sidebar";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
-import { getCurrentUser } from "@/lib/identity";
 import "./globals.css";
 
 const bricolage = Bricolage_Grotesque({
@@ -44,13 +41,13 @@ export const viewport: Viewport = {
   themeColor: "#F2A81D",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const user = await getCurrentUser();
-
+  // Global shell only. App chrome (Header/Sidebar) lives in (app)/layout.tsx so
+  // the (marketing) landing renders chrome-free.
   return (
     <html
       lang="en"
@@ -58,11 +55,7 @@ export default async function RootLayout({
     >
       <body className="flex min-h-full flex-col">
         <ServiceWorkerRegister />
-        <Header user={user} />
-        <div className="flex min-h-0 flex-1">
-          <Sidebar user={user} />
-          <div className="flex min-w-0 flex-1 flex-col">{children}</div>
-        </div>
+        {children}
       </body>
     </html>
   );

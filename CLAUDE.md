@@ -65,6 +65,9 @@ product (CAL-Links) will both read it. Keep it generic:
   this so an accidental client-side import fails the build instead of leaking a secret.
 - If a task needs a real credential, secret, or dashboard action I haven't provided — STOP
   and ask. Never invent a placeholder value and pretend it works.
+- Auth deep-link redirects (`?next=`) MUST pass through `lib/redirect.ts` `safeInternalPath`:
+  internal paths only, allowlisted prefixes (`/`, `/market`, `/ships`, `/upvoted`, `/u/`),
+  rejecting `//`, `\`, `:`/protocol, and unknown paths → `/`. Never loosen this.
 
 ## Workflow conventions
 - MVP quality by default. No gold-plating, no speculative features, no auth flows beyond
