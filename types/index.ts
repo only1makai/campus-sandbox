@@ -88,6 +88,53 @@ export interface SellerRating {
   avg: number | null;
 }
 
+// --- Request system (app-facing views over requests / request_messages) ---
+
+export type { RequestStatus } from "./supabase";
+import type { RequestStatus } from "./supabase";
+
+export type PostCategory = "app" | "shop" | "thrift";
+export type RequestRole = "buyer" | "seller";
+
+/** Minimal post reference shown in the requests list / thread header. */
+export interface RequestPostRef {
+  id: string;
+  title: string;
+  type: PostCategory;
+}
+
+/** One row in the /requests inbox (the viewer's own threads). */
+export interface RequestSummary {
+  id: string;
+  post: RequestPostRef;
+  /** the other participant (seller if I'm the buyer, and vice-versa) */
+  counterpart: Profile;
+  role: RequestRole;
+  status: RequestStatus;
+  lastActivityAt: string;
+  messageCount: number;
+}
+
+export interface RequestMessage {
+  id: string;
+  senderId: string;
+  body: string;
+  createdAt: string;
+  /** true if the viewer sent it (right-aligned in the thread) */
+  mine: boolean;
+}
+
+/** Full thread view (buyer or seller). */
+export interface RequestThread {
+  id: string;
+  post: RequestPostRef;
+  buyer: Profile;
+  seller: Profile;
+  status: RequestStatus;
+  myRole: RequestRole;
+  messages: RequestMessage[];
+}
+
 export type KarmaAction =
   | "upvote_received"
   | "cta_click"

@@ -2,7 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Rocket, ArrowBigUp, Users, FlaskConical, Bookmark, Store } from "lucide-react";
+import {
+  Home,
+  Rocket,
+  ArrowBigUp,
+  Users,
+  FlaskConical,
+  Bookmark,
+  Store,
+  Tag,
+  MessageSquare,
+} from "lucide-react";
 import type { CurrentUser } from "@/types";
 
 function NavLink({
@@ -50,8 +60,14 @@ export default function Sidebar({ user }: { user: CurrentUser | null }) {
       <NavLink
         href="/market"
         icon={<Store size={18} />}
-        label="Makers Market"
+        label="Marketplace"
         active={pathname === "/market"}
+      />
+      <NavLink
+        href="/thrift"
+        icon={<Tag size={18} />}
+        label="Thrift"
+        active={pathname === "/thrift"}
       />
 
       <div className="my-3 border-t border-border-soft" />
@@ -69,6 +85,12 @@ export default function Sidebar({ user }: { user: CurrentUser | null }) {
             icon={<ArrowBigUp size={18} />}
             label="Upvoted"
             active={pathname === "/upvoted"}
+          />
+          <NavLink
+            href="/requests"
+            icon={<MessageSquare size={18} />}
+            label="Requests"
+            active={pathname.startsWith("/requests")}
           />
           <ComingSoonRow icon={<Users size={18} />} label="Following" />
           <ComingSoonRow icon={<FlaskConical size={18} />} label="Testing" />

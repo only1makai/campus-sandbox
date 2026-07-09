@@ -25,15 +25,13 @@ export default function Header({ user }: { user: CurrentUser | null }) {
       <SearchInput />
 
       <div className="ml-auto flex shrink-0 items-center gap-3">
-        <button
-          type="button"
-          disabled
-          title="Self-serve shipping is coming soon"
-          className="flex cursor-not-allowed items-center gap-1.5 rounded-btn border-2 border-dashed border-text-faint px-3 py-1.5 text-meta font-semibold text-text-faint"
+        <Link
+          href="/sell"
+          className="flex items-center gap-1.5 rounded-btn border-2 border-ink bg-card px-3 py-1.5 text-meta font-semibold text-ink shadow-resting transition-shadow hover:shadow-elevated hover:bg-paper"
         >
           <Plus size={14} />
-          Ship
-        </button>
+          Sell
+        </Link>
 
         {user ? (
           <div className="flex items-center gap-3">

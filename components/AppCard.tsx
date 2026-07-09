@@ -8,15 +8,8 @@ import type { AppPost, SupportingColor } from "@/types";
 import { logKarma } from "@/lib/karma";
 import { recordCtaClick, upvotePost } from "@/app/actions/karma";
 import BoostBadge from "@/components/BoostBadge";
+import { FILL } from "@/lib/colors";
 import { hoverLift, tapPress, transitionBase, transitionFast } from "@/lib/motion";
-
-const FILL: Record<SupportingColor, string> = {
-  gold: "bg-gold",
-  "live-green": "bg-live-green",
-  "link-blue": "bg-link-blue",
-  tomato: "bg-tomato",
-  grape: "bg-grape",
-};
 
 const LETTER: Record<SupportingColor, string> = {
   gold: "text-gold",

@@ -3,19 +3,16 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, MapPin, MessageSquarePlus, Star } from "lucide-react";
-import type { MarketPost, SellerRating, SupportingColor } from "@/types";
+import { Clock, MapPin, MessageSquarePlus } from "lucide-react";
+import type { MarketPost, SellerRating } from "@/types";
 import { reviewPost } from "@/app/actions/karma";
 import BoostBadge from "@/components/BoostBadge";
+import RequestButton from "@/components/RequestButton";
+import MarkSoldButton from "@/components/MarkSoldButton";
+import SellerBadge from "@/components/SellerBadge";
+import { RatingStarsFor } from "@/components/RatingStars";
+import { FILL } from "@/lib/colors";
 import { hoverLift, tapPress, transitionBase, transitionFast } from "@/lib/motion";
-
-const FILL: Record<SupportingColor, string> = {
-  gold: "bg-gold",
-  "live-green": "bg-live-green",
-  "link-blue": "bg-link-blue",
-  tomato: "bg-tomato",
-  grape: "bg-grape",
-};
 
 /** Covers both shop (in_stock/made_to_order/sold_out) and thrift
  *  (available/sold/expired) statuses — the two share this card shape. */
@@ -51,20 +48,31 @@ function timeLeft(expiresAt?: string | null): string | null {
   return `${hours} hour${hours === 1 ? "" : "s"} left`;
 }
 
+function daysUntil(expiresAt?: string | null): number | null {
+  if (!expiresAt) return null;
+  const ms = Date.parse(expiresAt) - Date.now();
+  if (Number.isNaN(ms) || ms <= 0) return null;
+  return Math.floor(ms / 86_400_000);
+}
+
 export default function MakerCard({
   product,
   index,
   isAuthed,
   readOnly = false,
   rating,
+  currentUserId,
 }: {
   product: MarketPost;
   index: number;
   isAuthed: boolean;
-  /** Landing preview: strip the review affordance. */
+  /** Landing preview: strip every action (request/review/mark-sold). */
   readOnly?: boolean;
-  /** Seller star aggregate (shop only) — display fact, never ranking. */
+  /** Seller star aggregate — display fact, never ranking. Shown on shop AND
+   *  thrift cards (seller-level credibility; thrift order stays newest-first). */
   rating?: SellerRating;
+  /** Viewer id — to detect the seller's own listing. */
+  currentUserId?: string;
 }) {
   const router = useRouter();
   const [reviewOpen, setReviewOpen] = useState(false);
@@ -79,15 +87,16 @@ export default function MakerCard({
 
   const isThrift = product.type === "thrift";
   const isSold = isThrift && product.status === "sold";
+  const isOwn = !!currentUserId && currentUserId === product.author.id;
   const remaining = isThrift && !isSold ? timeLeft(product.expiresAt) : null;
+  const daysLeft = isThrift && !isSold ? daysUntil(product.expiresAt) : null;
+  const urgent = daysLeft !== null && daysLeft <= 2;
   const price = `$${(product.priceCents / 100).toFixed(product.priceCents % 100 ? 2 : 0)}`;
 
-  // The review flow is shop-only and write-gated; never shown read-only.
-  const showReview = product.type === "shop" && !readOnly;
-  const stars = rating && rating.count > 0 ? Math.round(rating.avg ?? 0) : 0;
+  // Review is shop-only, write-gated, never on your own shop or in preview.
+  const showReview = product.type === "shop" && !readOnly && !isOwn;
 
   const openReview = () => {
-    // Reviewing writes — requires a signed-in slug (browsing stays public).
     if (!isAuthed) {
       router.push("/login");
       return;
@@ -119,13 +128,19 @@ export default function MakerCard({
       animate={{ opacity: 1, y: 0 }}
       whileHover={hoverLift}
       transition={transitionBase}
-      className="mb-8 break-inside-avoid overflow-hidden rounded-card border-2 border-ink bg-card shadow-resting transition-shadow duration-150 hover:shadow-elevated"
+      className={`mb-8 break-inside-avoid overflow-hidden rounded-card border-2 border-ink bg-card shadow-resting transition-shadow duration-150 hover:shadow-elevated ${
+        isSold ? "opacity-75" : ""
+      }`}
     >
       {/* photo block — flat color, big category mark, price tag sticker */}
       <div
         className={`relative flex items-center justify-center ${PHOTO_HEIGHTS[index % PHOTO_HEIGHTS.length]} ${FILL[product.bannerColor]}`}
       >
-        <span className={`text-6xl ${isSold ? "opacity-40" : ""}`} role="img" aria-label={product.category}>
+        <span
+          className={`text-6xl ${isSold ? "opacity-40" : ""}`}
+          role="img"
+          aria-label={product.category}
+        >
           {CATEGORY_EMOJI[product.category] ?? "🛠️"}
         </span>
 
@@ -144,9 +159,13 @@ export default function MakerCard({
           {product.statusLabel}
         </span>
 
-        {/* thrift leads with time remaining */}
+        {/* thrift leads with time remaining; ≤2 days reads urgent (tomato) */}
         {remaining && (
-          <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full border border-ink bg-card px-2.5 py-1 font-sans text-meta font-semibold text-ink">
+          <span
+            className={`absolute right-3 top-3 flex items-center gap-1 rounded-full border border-ink px-2.5 py-1 font-sans text-meta font-semibold ${
+              urgent ? "bg-tomato text-white" : "bg-card text-ink"
+            }`}
+          >
             <Clock size={12} />
             {remaining}
           </span>
@@ -163,44 +182,38 @@ export default function MakerCard({
       <div className="flex flex-col gap-2 p-4">
         <h3 className="font-display text-card-title text-ink">{product.title}</h3>
 
-        {/* shop credibility: seller star rating (display only, never ranking) */}
-        {product.type === "shop" && rating && rating.count > 0 && (
-          <div className="flex items-center gap-1.5">
-            <div className="flex items-center gap-0.5">
-              {[1, 2, 3, 4, 5].map((n) => (
-                <Star
-                  key={n}
-                  size={13}
-                  className={n <= stars ? "text-gold" : "text-border-soft"}
-                  fill={n <= stars ? "#F2A81D" : "none"}
-                />
-              ))}
-            </div>
-            <span className="text-meta font-semibold text-ink">{rating.avg?.toFixed(1)}</span>
-            <span className="text-meta text-text-faint">({rating.count})</span>
-          </div>
-        )}
+        {/* seller credibility: star rating (display only, never ranking) */}
+        <RatingStarsFor rating={rating} />
 
         <p className="text-body text-text-secondary">{product.description}</p>
 
         <div className="flex items-center justify-between">
-          <span className="flex items-center gap-2">
-            <span
-              className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold text-white ${FILL[product.author.avatarColor]}`}
-            >
-              {product.author.handle[0].toUpperCase()}
-            </span>
-            <span className="text-meta text-text-secondary">@{product.author.handle}</span>
-          </span>
+          <SellerBadge profile={product.author} />
           <span className="flex items-center gap-1 text-meta text-text-faint">
             <MapPin size={13} />
             {product.locationLabel}
           </span>
         </div>
 
-        {/* review = the verified-karma action (shop only, hidden in read-only preview) */}
+        {/* primary action — request / owner / sold (hidden in read-only preview) */}
+        {!readOnly &&
+          (isSold ? (
+            <p className="mt-2 text-center text-meta font-semibold text-text-faint">
+              No longer available
+            </p>
+          ) : isOwn ? (
+            isThrift ? (
+              <MarkSoldButton postId={product.id} />
+            ) : (
+              <p className="mt-2 text-center text-meta text-text-faint">Your listing</p>
+            )
+          ) : (
+            <RequestButton postId={product.id} />
+          ))}
+
+        {/* review = the verified-karma action (shop only, secondary) */}
         {showReview && (
-          <div className="relative mt-2">
+          <div className="relative mt-1">
             <motion.button
               type="button"
               onClick={openReview}

@@ -4,6 +4,10 @@ import type {
   FilterTag,
   Platform,
   Post,
+  RequestMessage,
+  RequestRole,
+  RequestSummary,
+  RequestThread,
   SellerRating,
   ShopPost,
   ShopStatus,
@@ -11,7 +15,13 @@ import type {
   ThriftPost,
   ThriftStatus,
 } from "@/types";
-import type { PostRow, ProfileRow, RankedPostRow } from "@/types/supabase";
+import type {
+  PostRow,
+  ProfileRow,
+  RankedPostRow,
+  RequestMessageRow,
+  RequestRow,
+} from "@/types/supabase";
 import { supabaseAnon } from "@/lib/supabase";
 import { supabaseServer } from "@/lib/supabase/server";
 import { toProfile } from "@/lib/identity";
@@ -190,6 +200,29 @@ export async function fetchThriftPreview(limit = 4): Promise<ThriftPost[]> {
 }
 
 /**
+ * The live /thrift feed. Like fetchThriftPosts but ALSO keeps `sold` listings
+ * visible (rendered faded on the card) while dropping expired ones — per the
+ * Thrift feed spec. Structural no-ranking: base `posts` table (never
+ * ranked_posts), created_at desc only. A row survives if it's sold, or it's
+ * available and still within its expiry window.
+ */
+export async function fetchThriftFeed(): Promise<ThriftPost[]> {
+  if (envMissing()) return [];
+
+  const now = new Date().toISOString();
+  const { data, error } = await supabaseAnon()
+    .from("posts")
+    .select("*, author_profile:profiles!posts_author_fkey(*)")
+    .eq("type", "thrift")
+    .in("status", ["available", "sold"])
+    .or(`status.eq.sold,expires_at.gt.${now}`)
+    .order("created_at", { ascending: false });
+
+  if (error) throw new Error(`fetchThriftFeed failed: ${error.message}`);
+  return (data as unknown as (PostRow & { author_profile: ProfileRow })[]).map(toThriftPost);
+}
+
+/**
  * Posts (apps + shop + thrift) by one author, for the profile page's "shipped"
  * list. Same score-then-recency ordering; boost is only ever non-zero on shop
  * rows (reviews are the only verified-karma path).
@@ -265,4 +298,124 @@ export async function getSellerRating(sellerId: string): Promise<SellerRating> {
   }
   const raw = data as { count: number; avg: number | null };
   return { count: raw.count ?? 0, avg: raw.avg ?? null };
+}
+
+/**
+ * Batch seller-rating lookup for a feed — dedupes ids and fans out to the
+ * per-seller aggregate RPC. Display-only, never ranking (feed order is set
+ * before this runs).
+ */
+export async function fetchSellerRatings(
+  sellerIds: string[],
+): Promise<Record<string, SellerRating>> {
+  const unique = [...new Set(sellerIds)];
+  const entries = await Promise.all(
+    unique.map(async (id) => [id, await getSellerRating(id)] as const),
+  );
+  return Object.fromEntries(entries);
+}
+
+// --- Requests / messages (participant-only reads via supabaseServer) ---
+//
+// requests + request_messages have RLS restricted to buyer/seller. These MUST
+// run through supabaseServer() (session-scoped) — supabaseAnon() would silently
+// return zero rows. A non-participant gets zero rows too: that IS the denial
+// (Session-11/12 denied-vs-empty standard), so callers treat "no row" as
+// not-found.
+
+type RequestListRow = RequestRow & {
+  post: { id: string; title: string; type: string } | null;
+  buyer: ProfileRow | null;
+  seller: ProfileRow | null;
+  request_messages: { count: number }[];
+};
+
+function toRequestSummary(row: RequestListRow, userId: string): RequestSummary {
+  const role: RequestRole = row.buyer_id === userId ? "buyer" : "seller";
+  const counterpartRow = role === "buyer" ? row.seller : row.buyer;
+  return {
+    id: row.id,
+    post: {
+      id: row.post?.id ?? row.post_id,
+      title: row.post?.title ?? "(listing removed)",
+      type: (row.post?.type ?? "shop") as RequestSummary["post"]["type"],
+    },
+    // counterpart should always exist (FKs are NOT NULL); fall back defensively.
+    counterpart: toProfile(counterpartRow as ProfileRow),
+    role,
+    status: row.status,
+    lastActivityAt: row.last_activity_at,
+    messageCount: row.request_messages?.[0]?.count ?? 0,
+  };
+}
+
+/** The viewer's own request threads (as buyer OR seller), most-recent first. */
+export async function fetchMyRequests(userId: string): Promise<RequestSummary[]> {
+  if (envMissing()) return [];
+
+  const supabase = await supabaseServer();
+  const { data, error } = await supabase
+    .from("requests")
+    .select(
+      "*, post:posts!requests_post_id_fkey(id,title,type), buyer:profiles!requests_buyer_id_fkey(*), seller:profiles!requests_seller_id_fkey(*), request_messages(count)",
+    )
+    .order("last_activity_at", { ascending: false });
+
+  if (error) throw new Error(`fetchMyRequests failed: ${error.message}`);
+  return (data as unknown as RequestListRow[]).map((row) => toRequestSummary(row, userId));
+}
+
+/**
+ * A single thread the viewer participates in, with its messages. Returns null
+ * when the viewer isn't a participant (RLS returns no row) — the caller renders
+ * not-found. Messages are fetched separately (RLS-filtered by the parent).
+ */
+export async function fetchRequestThread(
+  requestId: string,
+  userId: string,
+): Promise<RequestThread | null> {
+  if (envMissing()) return null;
+
+  const supabase = await supabaseServer();
+  const { data: reqRow, error: reqError } = await supabase
+    .from("requests")
+    .select(
+      "*, post:posts!requests_post_id_fkey(id,title,type), buyer:profiles!requests_buyer_id_fkey(*), seller:profiles!requests_seller_id_fkey(*)",
+    )
+    .eq("id", requestId)
+    .maybeSingle();
+
+  if (reqError) throw new Error(`fetchRequestThread failed: ${reqError.message}`);
+  if (!reqRow) return null; // not a participant, or no such request → not-found
+
+  const row = reqRow as unknown as RequestListRow;
+
+  const { data: msgRows, error: msgError } = await supabase
+    .from("request_messages")
+    .select("*")
+    .eq("request_id", requestId)
+    .order("created_at", { ascending: true });
+  if (msgError) throw new Error(`fetchRequestThread (messages) failed: ${msgError.message}`);
+
+  const messages: RequestMessage[] = (msgRows as RequestMessageRow[]).map((m) => ({
+    id: m.id,
+    senderId: m.sender_id,
+    body: m.body,
+    createdAt: m.created_at,
+    mine: m.sender_id === userId,
+  }));
+
+  return {
+    id: row.id,
+    post: {
+      id: row.post?.id ?? row.post_id,
+      title: row.post?.title ?? "(listing removed)",
+      type: (row.post?.type ?? "shop") as RequestThread["post"]["type"],
+    },
+    buyer: toProfile(row.buyer as ProfileRow),
+    seller: toProfile(row.seller as ProfileRow),
+    status: row.status,
+    myRole: row.buyer_id === userId ? "buyer" : "seller",
+    messages,
+  };
 }

@@ -1,13 +1,6 @@
-import type { Post, SupportingColor } from "@/types";
+import type { Post } from "@/types";
 import BoostBadge from "@/components/BoostBadge";
-
-const FILL: Record<SupportingColor, string> = {
-  gold: "bg-gold",
-  "live-green": "bg-live-green",
-  "link-blue": "bg-link-blue",
-  tomato: "bg-tomato",
-  grape: "bg-grape",
-};
+import { FILL } from "@/lib/colors";
 
 function metaLine(post: Post): string {
   if (post.type === "app") {

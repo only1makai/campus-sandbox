@@ -122,6 +122,30 @@ no Vercel-cron route needed.
 - The Session-11 `karma_ledger` self-read policy (`auth.uid() = actor_id`) and
   every existing karma guardrail are untouched.
 
+## UI surface map (Session 13b)
+
+The UI for the above backend. No schema/RLS/migration changes — reads/writes go
+through the existing RPCs + new query accessors only.
+
+| Route | Purpose | States |
+|---|---|---|
+| `/market` | Marketplace feed (shop). Sort: Top rated (ranked order) / Newest. Seller stars on cards. | loading skeleton, empty, error (shared `(app)/error.tsx`) |
+| `/thrift` | Thrift feed. **Newest-first, no sort control** (fixed non-interactive pill). Sold = faded + "No longer available"; expired dropped; ≤2-days-left urgent (tomato) chip. Seller stars shown (display-only). | loading skeleton, honest empty ("Nothing in Thrift right now" → Sell), error |
+| `/requests` | The viewer's own threads (buyer∪seller, role-labelled). Auth-gated. | loading, empty, error |
+| `/requests/[id]` | Thread: messages, composer, `n/20` count indicator, status pill, ephemerality note. Seller: mark fulfilled / decline. Buyer (fulfilled): rating prompt. Non-participant → "Request not found" (RLS zero-rows). | not-found/denied, closed/at-cap composer, error |
+| `/sell` | Post-creation picker (shop vs thrift, consequences in copy). **Dead-ends** at "coming soon" — self-serve post creation has no backend yet (no `posts` INSERT policy / `create_post` RPC). | — |
+
+New accessors (`lib/queries.ts`): `fetchThriftFeed` (available+sold, drops expired), `fetchSellerRatings` (batch), `fetchMyRequests`, `fetchRequestThread` (both `supabaseServer`, participant-only). Actions (`app/actions/requests.ts`): `startRequest`, `sendMessage`, `setRequestStatus`, `rateSeller`, `markThriftSold`. Shared components: `RatingStars`, `SellerBadge`, `RequestButton`, `MessageComposer`, `RequestActions`, `RequestStatusPill`, `RatingPrompt`, `MarkSoldButton`, `MobileNav`, `FeedSkeleton`.
+
+### Known gaps to report (not widened here)
+- **`seller_ratings` has no SELECT policy** → the buyer can't read back their own
+  rating, so the rating prompt can't pre-fill an existing rating on reload; it
+  shows the picker and relies on the `UNIQUE(request_id)` violation for a calm
+  "already rated" message. Reading it back would need a new read path (policy or
+  RPC) — out of scope.
+- **No post-creation backend** (no `posts` INSERT policy / `create_post` RPC), so
+  the `/sell` picker is design-only until a create flow exists.
+
 ## Deferred (deliberately not built)
 
 - UI for thrift feed, requests/messaging, and rating (later session).
