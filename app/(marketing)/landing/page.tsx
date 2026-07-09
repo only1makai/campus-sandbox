@@ -16,8 +16,7 @@ export const metadata: Metadata = {
   description: "Student-built apps and student-made goods, from your fellow Slugs.",
 };
 
-// TODO: replace with the real support address before launch.
-const CONTACT_EMAIL = "hello@campus-sandbox.app";
+const CONTACT_EMAIL = "hello@campussandbox.club";
 
 export default async function LandingPage() {
   const [apps, shop, thrift] = await Promise.all([
