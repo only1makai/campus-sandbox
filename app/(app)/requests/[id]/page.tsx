@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { getCurrentUser } from "@/lib/identity";
-import { fetchRequestThread } from "@/lib/queries";
+import { fetchMyRating, fetchRequestThread } from "@/lib/queries";
 import SellerBadge from "@/components/SellerBadge";
 import RequestStatusPill from "@/components/RequestStatusPill";
 import MessageComposer from "@/components/MessageComposer";
@@ -49,6 +49,10 @@ export default async function RequestThreadPage({
   const closed = thread.status === "declined" || thread.status === "expired";
   const atCap = thread.messages.length >= MESSAGE_CAP;
   const nearCap = thread.messages.length >= MESSAGE_CAP - 5;
+  const myRating =
+    thread.myRole === "buyer" && thread.status === "fulfilled"
+      ? await fetchMyRating(thread.id)
+      : null;
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-6 py-8">
@@ -120,7 +124,7 @@ export default async function RequestThreadPage({
       {/* buyer rating once fulfilled */}
       {thread.myRole === "buyer" && thread.status === "fulfilled" && (
         <div className="mt-4">
-          <RatingPrompt requestId={thread.id} />
+          <RatingPrompt requestId={thread.id} existingRating={myRating} />
         </div>
       )}
     </main>

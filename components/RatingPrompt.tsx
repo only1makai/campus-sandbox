@@ -7,17 +7,22 @@ import { rateSeller } from "@/app/actions/requests";
 import { tapPress, transitionFast } from "@/lib/motion";
 
 /**
- * One-time buyer rating, shown once a request is fulfilled. The buyer can't
- * read back their own rating row (seller_ratings has no SELECT policy — an
- * intentional RLS gap, reported not widened), so we can't pre-populate an
- * existing rating on reload: we show the picker, confirm the just-picked stars
- * on success, and if they already rated, the UNIQUE(request_id) violation
- * surfaces as a calm "already rated" message.
+ * One-time buyer rating, shown once a request is fulfilled. `existingRating`
+ * (from fetchMyRating — the self-read policy added in migration 014) lets this
+ * render read-only on reload instead of only right after submit; a resubmit
+ * attempt would in any case be blocked by the UNIQUE(request_id) constraint,
+ * surfaced as a calm "already rated" message.
  */
-export default function RatingPrompt({ requestId }: { requestId: string }) {
+export default function RatingPrompt({
+  requestId,
+  existingRating = null,
+}: {
+  requestId: string;
+  existingRating?: number | null;
+}) {
   const [value, setValue] = useState(0);
   const [hover, setHover] = useState(0);
-  const [done, setDone] = useState<number | null>(null);
+  const [done, setDone] = useState<number | null>(existingRating);
   const [error, setError] = useState<string | null>(null);
   const [busy, startT] = useTransition();
 
@@ -39,7 +44,7 @@ export default function RatingPrompt({ requestId }: { requestId: string }) {
   if (done !== null) {
     return (
       <div className="rounded-card border-2 border-ink bg-cream p-4">
-        <p className="text-meta font-semibold text-ink">Thanks — you rated this seller:</p>
+        <p className="text-meta font-semibold text-ink">You rated this seller:</p>
         <div className="mt-1 flex items-center gap-0.5" aria-hidden>
           {[1, 2, 3, 4, 5].map((n) => (
             <Star

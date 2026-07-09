@@ -419,3 +419,25 @@ export async function fetchRequestThread(
     messages,
   };
 }
+
+/**
+ * The buyer's own rating on a request, if they've already rated it. Requires
+ * migration 014 (self-read policy: auth.uid() = rater_id) — must run through
+ * supabaseServer() so RLS sees the caller's session. Returns null both when no
+ * rating exists yet and when the viewer isn't the rater (RLS hides the row
+ * either way — indistinguishable, which is fine since callers only check this
+ * for the buyer on their own request).
+ */
+export async function fetchMyRating(requestId: string): Promise<number | null> {
+  if (envMissing()) return null;
+
+  const supabase = await supabaseServer();
+  const { data, error } = await supabase
+    .from("seller_ratings")
+    .select("stars")
+    .eq("request_id", requestId)
+    .maybeSingle();
+
+  if (error) throw new Error(`fetchMyRating failed: ${error.message}`);
+  return data?.stars ?? null;
+}

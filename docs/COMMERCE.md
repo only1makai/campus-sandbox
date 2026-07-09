@@ -135,14 +135,20 @@ through the existing RPCs + new query accessors only.
 | `/requests/[id]` | Thread: messages, composer, `n/20` count indicator, status pill, ephemerality note. Seller: mark fulfilled / decline. Buyer (fulfilled): rating prompt. Non-participant → "Request not found" (RLS zero-rows). | not-found/denied, closed/at-cap composer, error |
 | `/sell` | Post-creation picker (shop vs thrift, consequences in copy). **Dead-ends** at "coming soon" — self-serve post creation has no backend yet (no `posts` INSERT policy / `create_post` RPC). | — |
 
-New accessors (`lib/queries.ts`): `fetchThriftFeed` (available+sold, drops expired), `fetchSellerRatings` (batch), `fetchMyRequests`, `fetchRequestThread` (both `supabaseServer`, participant-only). Actions (`app/actions/requests.ts`): `startRequest`, `sendMessage`, `setRequestStatus`, `rateSeller`, `markThriftSold`. Shared components: `RatingStars`, `SellerBadge`, `RequestButton`, `MessageComposer`, `RequestActions`, `RequestStatusPill`, `RatingPrompt`, `MarkSoldButton`, `MobileNav`, `FeedSkeleton`.
+New accessors (`lib/queries.ts`): `fetchThriftFeed` (available+sold, drops expired), `fetchSellerRatings` (batch), `fetchMyRequests`, `fetchRequestThread`, `fetchMyRating` (all `supabaseServer`, participant/rater-only). Actions (`app/actions/requests.ts`): `startRequest`, `sendMessage`, `setRequestStatus`, `rateSeller`, `markThriftSold`. Shared components: `RatingStars`, `SellerBadge`, `RequestButton`, `MessageComposer`, `RequestActions`, `RequestStatusPill`, `RatingPrompt`, `MarkSoldButton`, `MobileNav`, `FeedSkeleton`.
 
-### Known gaps to report (not widened here)
-- **`seller_ratings` has no SELECT policy** → the buyer can't read back their own
-  rating, so the rating prompt can't pre-fill an existing rating on reload; it
-  shows the picker and relies on the `UNIQUE(request_id)` violation for a calm
-  "already rated" message. Reading it back would need a new read path (policy or
-  RPC) — out of scope.
+### Fixed: seller_ratings self-read (migration 014)
+`seller_ratings` had RLS on with **zero** policies — a total default-deny, even
+for the rater themself (the rating prompt couldn't tell "never rated" from
+"rated, can't read it back"). Migration `014` adds a narrow self-read policy —
+`using (auth.uid() = rater_id)` — mirroring the `karma_ledger` fix (migration
+`008`). A user can only ever see their own rating rows, never another rater's
+or another seller's individual rows; the public aggregate
+(`seller_rating_summary`) and the write path (`rate_seller`) are unchanged.
+`fetchMyRating(requestId)` now backs `RatingPrompt`'s read-only "already rated"
+state on reload, not just immediately after submit.
+
+### Known gap to report (not widened here)
 - **No post-creation backend** (no `posts` INSERT policy / `create_post` RPC), so
   the `/sell` picker is design-only until a create flow exists.
 
