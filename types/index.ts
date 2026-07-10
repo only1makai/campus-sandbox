@@ -132,6 +132,18 @@ export interface RequestMessage {
   mine: boolean;
 }
 
+/** Studio dashboard aggregates (from the studio_summary RPC). */
+export interface StudioActivityWeek {
+  week: string;
+  upvotes: number;
+  testers: number;
+}
+export interface StudioSummary {
+  karmaFromTestersWeek: number;
+  newTestersWeek: number;
+  activity: StudioActivityWeek[];
+}
+
 /** A review/feedback row with the reviewer + optional maker reply, joined to its
  *  post — used in the Studio feedback inbox and app feedback surfaces. */
 export interface Feedback {

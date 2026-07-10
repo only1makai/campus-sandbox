@@ -12,6 +12,7 @@ import {
   Store,
   Tag,
   MessageSquare,
+  LayoutDashboard,
 } from "lucide-react";
 import type { CurrentUser } from "@/types";
 
@@ -74,6 +75,12 @@ export default function Sidebar({ user }: { user: CurrentUser | null }) {
 
       {user ? (
         <>
+          <NavLink
+            href="/studio"
+            icon={<LayoutDashboard size={18} />}
+            label="Studio"
+            active={pathname.startsWith("/studio")}
+          />
           <NavLink
             href="/ships"
             icon={<Rocket size={18} />}

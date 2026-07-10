@@ -3,12 +3,14 @@ import type {
   AppStatus,
   FilterTag,
   Platform,
+  Feedback,
   Post,
   RequestMessage,
   RequestRole,
   RequestSummary,
   RequestThread,
   SellerRating,
+  StudioSummary,
   ShopPost,
   ShopStatus,
   SupportingColor,
@@ -21,6 +23,7 @@ import type {
   RankedPostRow,
   RequestMessageRow,
   RequestRow,
+  ReviewRow,
 } from "@/types/supabase";
 import { supabaseAnon } from "@/lib/supabase";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -448,6 +451,78 @@ export async function fetchMyRating(requestId: string): Promise<number | null> {
 
   if (error) throw new Error(`fetchMyRating failed: ${error.message}`);
   return data?.stars ?? null;
+}
+
+/** A single post by id (public ranked_posts read) — for the ship-management page. */
+export async function fetchPostById(id: string): Promise<Post | null> {
+  if (envMissing()) return null;
+  const { data, error } = await supabaseAnon()
+    .from("ranked_posts")
+    .select("*, author_profile:profiles!posts_author_fkey(*), reviews(count)")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw new Error(`fetchPostById failed: ${error.message}`);
+  if (!data) return null;
+  return toPost(data as unknown as ShopWithAuthor);
+}
+
+/** The caller's Studio dashboard aggregates (studio_summary RPC — the sanctioned
+ *  window over the maker's OWN received karma/testers). */
+export async function fetchStudioSummary(): Promise<StudioSummary> {
+  const empty: StudioSummary = { karmaFromTestersWeek: 0, newTestersWeek: 0, activity: [] };
+  if (envMissing()) return empty;
+  const supabase = await supabaseServer();
+  const { data, error } = await supabase.rpc("studio_summary");
+  if (error || !data) {
+    console.warn("[queries] studio_summary failed:", error?.message);
+    return empty;
+  }
+  const raw = data as {
+    karma_from_testers_week: number;
+    new_testers_week: number;
+    activity: { week: string; upvotes: number; testers: number }[];
+  };
+  return {
+    karmaFromTestersWeek: raw.karma_from_testers_week ?? 0,
+    newTestersWeek: raw.new_testers_week ?? 0,
+    activity: raw.activity ?? [],
+  };
+}
+
+/** Reviews/feedback across a maker's own posts, with reviewer + reply. */
+export async function fetchMakerFeedback(userId: string): Promise<Feedback[]> {
+  if (envMissing()) return [];
+  const supabase = await supabaseServer();
+  const { data: mine, error: mineErr } = await supabase
+    .from("posts")
+    .select("id, title, type")
+    .eq("author", userId);
+  if (mineErr) throw new Error(`fetchMakerFeedback (posts) failed: ${mineErr.message}`);
+  const posts = (mine ?? []) as { id: string; title: string; type: string }[];
+  if (posts.length === 0) return [];
+  const byId = new Map(posts.map((p) => [p.id, p]));
+
+  const { data, error } = await supabase
+    .from("reviews")
+    .select("*, reviewer:profiles!reviews_author_fkey(*)")
+    .in(
+      "post_id",
+      posts.map((p) => p.id),
+    )
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(`fetchMakerFeedback failed: ${error.message}`);
+
+  return (data as unknown as (ReviewRow & { reviewer: ProfileRow })[]).map((r) => ({
+    id: r.id,
+    postId: r.post_id,
+    postTitle: byId.get(r.post_id)?.title ?? "(removed)",
+    postType: (byId.get(r.post_id)?.type ?? "shop") as Feedback["postType"],
+    reviewer: toProfile(r.reviewer),
+    body: r.body,
+    reply: r.reply,
+    repliedAt: r.replied_at,
+    createdAt: r.created_at,
+  }));
 }
 
 /**
