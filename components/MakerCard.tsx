@@ -7,6 +7,7 @@ import { Clock, MessageSquarePlus } from "lucide-react";
 import type { MarketPost, SellerRating } from "@/types";
 import { reviewPost } from "@/app/actions/karma";
 import BoostBadge from "@/components/BoostBadge";
+import DemoBadge from "@/components/DemoBadge";
 import RequestButton from "@/components/RequestButton";
 import MarkSoldButton from "@/components/MarkSoldButton";
 import SellerBadge from "@/components/SellerBadge";
@@ -70,8 +71,8 @@ export default function MakerCard({
   const price = `$${(product.priceCents / 100).toFixed(product.priceCents % 100 ? 2 : 0)}`;
   const category = (product.category ?? "goods").toUpperCase();
 
-  // Review is shop-only, write-gated, never on your own shop or in preview.
-  const showReview = product.type === "shop" && !readOnly && !isOwn;
+  // Review is shop-only, write-gated, never on your own shop, demo, or preview.
+  const showReview = product.type === "shop" && !readOnly && !isOwn && !product.isDemo;
 
   const openReview = () => {
     if (!isAuthed) {
@@ -117,6 +118,8 @@ export default function MakerCard({
           {category}
         </span>
 
+        {product.isDemo && <DemoBadge className="absolute left-2 top-2" />}
+
         {/* sold: dim + stamp */}
         {isSold && (
           <span className="absolute inset-0 flex items-center justify-center bg-ink/25">
@@ -152,9 +155,13 @@ export default function MakerCard({
 
         <h3 className="font-display text-card-title text-ink">{product.title}</h3>
 
-        {/* primary action — request / owner / sold (hidden in read-only preview) */}
+        {/* primary action — example / request / owner / sold (hidden in preview) */}
         {!readOnly &&
-          (isSold ? (
+          (product.isDemo ? (
+            <p className="mt-1 text-center text-meta font-semibold text-text-faint">
+              Example listing
+            </p>
+          ) : isSold ? (
             <p className="mt-1 text-center text-meta font-semibold text-text-faint">
               No longer available
             </p>

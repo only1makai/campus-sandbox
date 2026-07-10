@@ -16,6 +16,15 @@ boost = 0                          when no active window
 - **BOOST_WINDOW_DAYS = 3** — each verified karma event sets
   `posts.boost_expires_at = now() + 3 days` (later events extend it). Hard
   cutoff at expiry; no gradual decay in v1.
+- **BOOST_CEILING_DAYS = 30 (Session 13e)** — a post cannot stay boosted
+  beyond 30 days from its FIRST boost. `posts.boost_first_started_at` is
+  stamped on the first boost (null = never); `record_review` computes
+  `boost_expires_at = least(now() + 3 days, boost_first_started_at + 30 days)`.
+  Reviews after the ceiling still pay +15 karma and count toward the review
+  total — they just stop extending the window (they set an already-past expiry),
+  so the post falls out of boosted state naturally once the capped
+  `boost_expires_at` elapses. Bounds the collusion vector below to ~30 days of
+  sustained boost per post rather than indefinite.
 - **Per-post only**: boost derives from `karma_ledger` rows whose
   `source_post_id` is this post. An author's other posts inherit nothing.
 - **Cosmetic karma** (`verified = false`: upvote +1 ledger rows, CTA +5) is

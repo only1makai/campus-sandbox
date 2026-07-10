@@ -8,6 +8,7 @@ import type { AppPost, SupportingColor } from "@/types";
 import { logKarma } from "@/lib/karma";
 import { recordCtaClick, upvotePost } from "@/app/actions/karma";
 import BoostBadge from "@/components/BoostBadge";
+import DemoBadge from "@/components/DemoBadge";
 import { FILL } from "@/lib/colors";
 import { hoverLift, tapPress, transitionBase, transitionFast } from "@/lib/motion";
 
@@ -100,11 +101,14 @@ export default function AppCard({
           {app.title[0]}
         </span>
 
-        <span
-          className={`absolute left-3 top-3 rounded-full px-3 py-1 font-sans text-meta ${STATUS_PILL[app.status]}`}
-        >
-          {app.statusLabel}
-        </span>
+        <div className="absolute left-3 top-3 flex flex-col items-start gap-1.5">
+          {app.isDemo && <DemoBadge />}
+          <span
+            className={`rounded-full px-3 py-1 font-sans text-meta ${STATUS_PILL[app.status]}`}
+          >
+            {app.statusLabel}
+          </span>
+        </div>
 
         <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full border border-ink bg-card px-2.5 py-1 font-sans text-meta text-ink">
           {app.platform === "ios" ? <Smartphone size={12} /> : <Globe size={12} />}
@@ -149,21 +153,27 @@ export default function AppCard({
           </div>
         ) : (
         <div className="mt-3 flex items-stretch gap-2">
-          <motion.a
-            href={app.ctaUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={handleCta}
-            whileTap={tapPress}
-            transition={transitionFast}
-            className={`flex flex-1 items-center justify-center rounded-btn border-2 px-4 py-2 text-center font-sans text-meta font-semibold shadow-resting transition-shadow hover:shadow-elevated ${
-              betaFull
-                ? "border-dashed border-text-faint bg-paper text-text-secondary"
-                : "border-ink bg-gold text-ink hover:bg-gold-hover active:bg-gold-active"
-            }`}
-          >
-            {betaFull ? "Beta full — join waitlist" : app.ctaLabel}
-          </motion.a>
+          {app.isDemo ? (
+            <span className="flex flex-1 items-center justify-center rounded-btn border-2 border-dashed border-text-faint bg-paper px-4 py-2 text-center font-sans text-meta font-semibold text-text-secondary shadow-resting">
+              Example app
+            </span>
+          ) : (
+            <motion.a
+              href={app.ctaUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={handleCta}
+              whileTap={tapPress}
+              transition={transitionFast}
+              className={`flex flex-1 items-center justify-center rounded-btn border-2 px-4 py-2 text-center font-sans text-meta font-semibold shadow-resting transition-shadow hover:shadow-elevated ${
+                betaFull
+                  ? "border-dashed border-text-faint bg-paper text-text-secondary"
+                  : "border-ink bg-gold text-ink hover:bg-gold-hover active:bg-gold-active"
+              }`}
+            >
+              {betaFull ? "Beta full — join waitlist" : app.ctaLabel}
+            </motion.a>
+          )}
 
           <div className="relative">
             <motion.button

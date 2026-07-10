@@ -61,6 +61,7 @@ export const apps: AppPost[] = [
   {
     id: "app-slugroute",
     type: "app",
+    isDemo: true,
     author: maya,
     title: "SlugRoute",
     description: "Live Metro + Loop bus tracking that actually knows about the rain detours.",
@@ -78,6 +79,7 @@ export const apps: AppPost[] = [
   {
     id: "app-dininghall",
     type: "app",
+    isDemo: true,
     author: kenzo,
     title: "DiningHall.fyi",
     description: "Tonight's menus for all five halls, ranked by how fast the line moves.",
@@ -94,6 +96,7 @@ export const apps: AppPost[] = [
   {
     id: "app-overcommit",
     type: "app",
+    isDemo: true,
     author: priya,
     title: "Overcommit",
     description: "A gentle accountability tracker for the 6 clubs you definitely joined.",
@@ -111,6 +114,7 @@ export const apps: AppPost[] = [
   {
     id: "app-redwoodfeed",
     type: "app",
+    isDemo: true,
     author: ossslug,
     title: "Redwood Feed",
     description: "One open-source firehose for every club calendar, flyer, and free-food ping.",
@@ -127,6 +131,7 @@ export const apps: AppPost[] = [
   {
     id: "app-spincycle",
     type: "app",
+    isDemo: true,
     author: dormdev,
     title: "SpinCycle",
     description: "Which dorm washers are free right now — and a ping when yours is done.",
@@ -143,6 +148,7 @@ export const apps: AppPost[] = [
   {
     id: "app-ferngully",
     type: "app",
+    isDemo: true,
     author: mossgirl,
     title: "Fern Gully",
     description: "Crowd-mapped study spots in the redwoods, rated by shade, wifi, and banana slugs.",
@@ -223,6 +229,7 @@ export const shopListings: ShopPost[] = [
   {
     id: "prod-slugstem",
     type: "shop",
+    isDemo: true,
     author: petalpress,
     title: "Slug & Stem",
     description: "Dried-flower bouquets foraged (ethically) from the meadow edges.",
@@ -240,6 +247,7 @@ export const shopListings: ShopPost[] = [
   {
     id: "prod-kilnkelp",
     type: "shop",
+    isDemo: true,
     author: mudslinger,
     title: "Kiln & Kelp",
     description: "Hand-thrown mugs glazed in fog gradients. Every one is lopsided on purpose.",
@@ -257,6 +265,7 @@ export const shopListings: ShopPost[] = [
   {
     id: "prod-slugstickers",
     type: "shop",
+    isDemo: true,
     author: stickyslug,
     title: "Banana Slug Stickers",
     description: "Waterproof vinyl slugs for laptops, water bottles, and parking permits.",
@@ -274,6 +283,7 @@ export const shopListings: ShopPost[] = [
   {
     id: "prod-redwoodreads",
     type: "shop",
+    isDemo: true,
     author: foldedpine,
     title: "Redwood Reads",
     description: "Hand-bound journals with recycled paper and bark-pressed covers.",
@@ -291,6 +301,7 @@ export const shopListings: ShopPost[] = [
   {
     id: "prod-fogcandle",
     type: "shop",
+    isDemo: true,
     author: waxpoetic,
     title: "Fog Candle Co.",
     description: "Soy candles in scents like First Rain, Eucalyptus Grove, and Dining Hall Waffle.",
@@ -308,6 +319,7 @@ export const shopListings: ShopPost[] = [
   {
     id: "prod-loopthreads",
     type: "shop",
+    isDemo: true,
     author: hookedslug,
     title: "Loop Threads",
     description: "Chunky crochet beanies in banana-slug yellow. Warm enough for the fog line.",

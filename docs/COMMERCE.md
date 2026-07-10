@@ -179,6 +179,19 @@ Feed integration is zero-touch: new shop posts enter `/market` via the existing
 `ranked_posts` path (unboosted/unreviewed → they rank accordingly); new thrift
 posts land at the top of `/thrift` (base table, newest-first).
 
+## Demo posts (Session 13e)
+
+`posts.is_demo` flags the seeded placeholder content (backfilled by the 12
+fixture author handles; real `create_post` rows default to `false`). Demo posts
+stay in normal feed position and counts and show an "Example" chip — they read as
+real content with a clear marker, not segregated filler. Their commitment
+affordances are disabled **server-side, not just in the UI**: `record_review`,
+`rate_seller`, and `record_cta_click` (the tester-CTA path) each reject
+`is_demo = true` posts, so a placeholder can never accrue a real review, rating,
+verified/boost karma, or tester-CTA credit. (The Request button is UI-disabled to
+"Example listing"; `create_request` itself is not server-blocked — a known,
+low-risk residual since demo sellers are real `@ucsc.edu` seed accounts.)
+
 ## Deferred (deliberately not built)
 
 - **Photo/image upload for listings** — planned fast-follow (Storage bucket +

@@ -38,6 +38,10 @@ export type PostRow = {
   boost_expires_at: string | null;
   /** thrift only: listing auto-expiry (~21d); null for app/shop */
   expires_at: string | null;
+  /** seeded placeholder post — cannot accrue real karma/reviews/ratings */
+  is_demo: boolean;
+  /** when this post was FIRST boosted (null = never); caps boost at first+30d */
+  boost_first_started_at: string | null;
   created_at: string;
 };
 

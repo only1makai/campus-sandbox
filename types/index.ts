@@ -24,6 +24,8 @@ interface PostBase {
   boost?: number;
   /** end of the 3-day boost window; badge derives from this, not the stale bool */
   boostExpiresAt?: string | null;
+  /** seeded placeholder post — shows an "Example" badge; actions are disabled */
+  isDemo: boolean;
 }
 
 export interface AppPost extends PostBase {
