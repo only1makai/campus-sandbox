@@ -199,6 +199,9 @@ export type Database = {
           p_github_url?: string | null;
           p_website_url?: string | null;
           p_contact_email?: string | null;
+          /** locked once non-null — update_profile_identity rejects changing an
+           *  existing handle; only a one-time set from null is allowed. */
+          p_handle?: string | null;
           p_update_bio?: boolean;
           p_update_avatar?: boolean;
           p_update_display_name?: boolean;
@@ -207,6 +210,7 @@ export type Database = {
           p_update_github?: boolean;
           p_update_website?: boolean;
           p_update_contact_email?: boolean;
+          p_update_handle?: boolean;
         };
         Returns: undefined;
       };
