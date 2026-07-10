@@ -51,6 +51,11 @@ export function toProfile(row: ProfileRow): Profile {
     avatarColor: row.avatar_color as SupportingColor,
     avatarImageUrl: row.avatar_image_url,
     bio: row.bio,
+    collegeYear: row.college_year,
+    pronouns: row.pronouns,
+    githubUrl: row.github_url,
+    websiteUrl: row.website_url,
+    contactEmail: row.contact_email,
   };
 }
 

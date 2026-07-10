@@ -18,10 +18,16 @@ const FILTERS: { label: string; tag: FilterTag | "all" }[] = [
 export default function BetaBoard({
   apps,
   isAuthed,
+  currentUserId,
+  joinedIds = [],
 }: {
   apps: AppPost[];
   isAuthed: boolean;
+  currentUserId?: string;
+  /** post ids the viewer has joined as a tester */
+  joinedIds?: string[];
 }) {
+  const joinedSet = new Set(joinedIds);
   const [active, setActive] = useState<FilterTag | "all">("all");
   const query = (useSearchParams().get("q") ?? "").trim().toLowerCase();
 
@@ -78,7 +84,13 @@ export default function BetaBoard({
       <motion.div layout className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
         <AnimatePresence mode="popLayout">
           {visible.map((app) => (
-            <AppCard key={app.id} app={app} isAuthed={isAuthed} />
+            <AppCard
+              key={app.id}
+              app={app}
+              isAuthed={isAuthed}
+              currentUserId={currentUserId}
+              joined={joinedSet.has(app.id)}
+            />
           ))}
         </AnimatePresence>
       </motion.div>

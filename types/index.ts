@@ -41,6 +41,12 @@ export interface AppPost extends PostBase {
   testersNeeded?: number;
   /** Static badge only — ranking behind it lands once weighting is abuse-resistant. */
   boosted?: boolean;
+  /** Session 13c: tester cohort + maker-editable fields (app-only). */
+  testerCount: number;
+  testerGoal?: number | null;
+  maxTesters?: number | null;
+  version?: string | null;
+  changelog?: string | null;
 }
 
 export type ShopStatus = "in_stock" | "made_to_order" | "sold_out";
@@ -124,6 +130,20 @@ export interface RequestMessage {
   createdAt: string;
   /** true if the viewer sent it (right-aligned in the thread) */
   mine: boolean;
+}
+
+/** A review/feedback row with the reviewer + optional maker reply, joined to its
+ *  post — used in the Studio feedback inbox and app feedback surfaces. */
+export interface Feedback {
+  id: string;
+  postId: string;
+  postTitle: string;
+  postType: PostCategory;
+  reviewer: Profile;
+  body: string;
+  reply: string | null;
+  repliedAt: string | null;
+  createdAt: string;
 }
 
 /** Full thread view (buyer or seller). */

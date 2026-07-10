@@ -9,6 +9,7 @@ import { logKarma } from "@/lib/karma";
 import { recordCtaClick, upvotePost } from "@/app/actions/karma";
 import BoostBadge from "@/components/BoostBadge";
 import DemoBadge from "@/components/DemoBadge";
+import TesterActions from "@/components/TesterActions";
 import { FILL } from "@/lib/colors";
 import { hoverLift, tapPress, transitionBase, transitionFast } from "@/lib/motion";
 
@@ -31,11 +32,17 @@ export default function AppCard({
   app,
   isAuthed,
   readOnly = false,
+  currentUserId,
+  joined = false,
 }: {
   app: AppPost;
   isAuthed: boolean;
   /** Landing preview: strip all interactive affordances (no upvote, no CTA link). */
   readOnly?: boolean;
+  /** Viewer id — to detect the maker's own app. */
+  currentUserId?: string;
+  /** Has the viewer already joined this app's beta as a tester? */
+  joined?: boolean;
 }) {
   const router = useRouter();
   const [upvoted, setUpvoted] = useState(false);
@@ -43,6 +50,10 @@ export default function AppCard({
   const [stickerKey, setStickerKey] = useState(0);
 
   const betaFull = app.status === "beta_full";
+  const isOwn = !!currentUserId && currentUserId === app.author.id;
+  const capFull = app.maxTesters != null && app.testerCount >= app.maxTesters;
+  const needsMore =
+    app.testerGoal != null ? Math.max(0, app.testerGoal - app.testerCount) : null;
 
   const handleUpvote = () => {
     // Upvoting writes — requires a signed-in slug (browsing stays public).
@@ -134,6 +145,13 @@ export default function AppCard({
           <span className="text-meta text-text-secondary">@{app.author.handle}</span>
         </div>
 
+        {/* tester progress — only when a goal is set (real apps) */}
+        {!readOnly && !app.isDemo && needsMore !== null && (
+          <p className="text-meta font-semibold text-text-secondary">
+            {capFull ? "Beta full" : `Needs ${needsMore} more tester${needsMore === 1 ? "" : "s"}`}
+          </p>
+        )}
+
         {/* footer */}
         {readOnly ? (
           <div className="mt-3 flex items-stretch gap-2">
@@ -152,12 +170,12 @@ export default function AppCard({
             </div>
           </div>
         ) : (
-        <div className="mt-3 flex items-stretch gap-2">
+        <div className="mt-3 flex items-start gap-2">
           {app.isDemo ? (
             <span className="flex flex-1 items-center justify-center rounded-btn border-2 border-dashed border-text-faint bg-paper px-4 py-2 text-center font-sans text-meta font-semibold text-text-secondary shadow-resting">
               Example app
             </span>
-          ) : (
+          ) : isOwn ? (
             <motion.a
               href={app.ctaUrl}
               target="_blank"
@@ -165,14 +183,19 @@ export default function AppCard({
               onClick={handleCta}
               whileTap={tapPress}
               transition={transitionFast}
-              className={`flex flex-1 items-center justify-center rounded-btn border-2 px-4 py-2 text-center font-sans text-meta font-semibold shadow-resting transition-shadow hover:shadow-elevated ${
-                betaFull
-                  ? "border-dashed border-text-faint bg-paper text-text-secondary"
-                  : "border-ink bg-gold text-ink hover:bg-gold-hover active:bg-gold-active"
-              }`}
+              className="flex flex-1 items-center justify-center rounded-btn border-2 border-ink bg-gold px-4 py-2 text-center font-sans text-meta font-semibold text-ink shadow-resting transition-shadow hover:shadow-elevated hover:bg-gold-hover active:bg-gold-active"
             >
-              {betaFull ? "Beta full — join waitlist" : app.ctaLabel}
+              {app.ctaLabel}
             </motion.a>
+          ) : (
+            <TesterActions
+              className="flex-1"
+              postId={app.id}
+              ctaUrl={app.ctaUrl}
+              ctaLabel={app.ctaLabel}
+              initialJoined={joined}
+              full={capFull}
+            />
           )}
 
           <div className="relative">

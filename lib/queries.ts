@@ -65,6 +65,11 @@ function toAppPost(row: PostWithAuthor): AppPost {
     tags: (row.tags ?? []) as FilterTag[],
     testersNeeded: row.testers_needed ?? undefined,
     boosted: row.boosted,
+    testerCount: row.tester_count ?? 0,
+    testerGoal: row.tester_goal,
+    maxTesters: row.max_testers,
+    version: row.version,
+    changelog: row.changelog,
   };
 }
 
@@ -443,4 +448,17 @@ export async function fetchMyRating(requestId: string): Promise<number | null> {
 
   if (error) throw new Error(`fetchMyRating failed: ${error.message}`);
   return data?.stars ?? null;
+}
+
+/**
+ * Post ids the viewer has joined as a tester. Uses supabaseServer (testers has
+ * a self-read RLS policy: auth.uid() = user_id), so it returns only the caller's
+ * own joins — used to unlock the feedback box on the Beta Board.
+ */
+export async function fetchJoinedPostIds(userId: string): Promise<string[]> {
+  if (envMissing()) return [];
+  const supabase = await supabaseServer();
+  const { data, error } = await supabase.from("testers").select("post_id").eq("user_id", userId);
+  if (error) throw new Error(`fetchJoinedPostIds failed: ${error.message}`);
+  return (data ?? []).map((r) => r.post_id as string);
 }

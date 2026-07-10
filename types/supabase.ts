@@ -14,6 +14,11 @@ export type ProfileRow = {
   avatar_color: string;
   avatar_image_url: string | null;
   bio: string | null;
+  college_year: string | null;
+  pronouns: string | null;
+  github_url: string | null;
+  website_url: string | null;
+  contact_email: string | null;
   created_at: string;
 };
 
@@ -42,6 +47,13 @@ export type PostRow = {
   is_demo: boolean;
   /** when this post was FIRST boosted (null = never); caps boost at first+30d */
   boost_first_started_at: string | null;
+  /** app-only maker fields */
+  tester_goal: number | null;
+  max_testers: number | null;
+  version: string | null;
+  changelog: string | null;
+  /** denormalized count of joined testers (0 for non-app) */
+  tester_count: number;
   created_at: string;
 };
 
@@ -56,6 +68,8 @@ export type ReviewRow = {
   post_id: string;
   author: string;
   body: string;
+  reply: string | null;
+  replied_at: string | null;
   created_at: string;
 };
 
@@ -87,6 +101,13 @@ export type SellerRatingRow = {
   rater_id: string | null;
   seller_id: string;
   stars: number;
+  created_at: string;
+};
+
+export type TesterRow = {
+  id: string;
+  post_id: string;
+  user_id: string;
   created_at: string;
 };
 
@@ -151,6 +172,12 @@ export type Database = {
         Update: Partial<SellerRatingRow>;
         Relationships: [];
       };
+      testers: {
+        Row: TesterRow;
+        Insert: Partial<TesterRow> & Pick<TesterRow, "post_id" | "user_id">;
+        Update: Partial<TesterRow>;
+        Relationships: [];
+      };
     };
     Views: {
       ranked_posts: {
@@ -166,11 +193,38 @@ export type Database = {
         Args: {
           p_bio?: string | null;
           p_avatar_image_url?: string | null;
+          p_display_name?: string | null;
+          p_college_year?: string | null;
+          p_pronouns?: string | null;
+          p_github_url?: string | null;
+          p_website_url?: string | null;
+          p_contact_email?: string | null;
           p_update_bio?: boolean;
           p_update_avatar?: boolean;
+          p_update_display_name?: boolean;
+          p_update_college_year?: boolean;
+          p_update_pronouns?: boolean;
+          p_update_github?: boolean;
+          p_update_website?: boolean;
+          p_update_contact_email?: boolean;
         };
         Returns: undefined;
       };
+      join_as_tester: { Args: { p_post_id: string }; Returns: undefined };
+      record_app_feedback: { Args: { p_post_id: string; p_body: string }; Returns: undefined };
+      reply_to_review: { Args: { p_review_id: string; p_reply: string }; Returns: undefined };
+      update_app_details: {
+        Args: {
+          p_post_id: string;
+          p_version: string | null;
+          p_changelog: string | null;
+          p_tester_goal: number | null;
+          p_max_testers: number | null;
+        };
+        Returns: undefined;
+      };
+      studio_summary: { Args: Record<string, never>; Returns: unknown };
+      betas_tested: { Args: { p_profile_id: string }; Returns: number };
       profile_reputation: { Args: { p_profile_id: string }; Returns: unknown };
       create_post: {
         Args: {

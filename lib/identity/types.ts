@@ -18,6 +18,11 @@ export interface Profile {
   /** optional real avatar; avatarColor is the fallback */
   avatarImageUrl?: string | null;
   bio?: string | null;
+  collegeYear?: string | null;
+  pronouns?: string | null;
+  githubUrl?: string | null;
+  websiteUrl?: string | null;
+  contactEmail?: string | null;
 }
 
 export interface CurrentUser {
