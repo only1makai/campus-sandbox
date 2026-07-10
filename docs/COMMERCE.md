@@ -133,7 +133,7 @@ through the existing RPCs + new query accessors only.
 | `/thrift` | Thrift feed. **Newest-first, no sort control** (fixed non-interactive pill). Sold = faded + "No longer available"; expired dropped; ≤2-days-left urgent (tomato) chip. Seller stars shown (display-only). | loading skeleton, honest empty ("Nothing in Thrift right now" → Sell), error |
 | `/requests` | The viewer's own threads (buyer∪seller, role-labelled). Auth-gated. | loading, empty, error |
 | `/requests/[id]` | Thread: messages, composer, `n/20` count indicator, status pill, ephemerality note. Seller: mark fulfilled / decline. Buyer (fulfilled): rating prompt. Non-participant → "Request not found" (RLS zero-rows). | not-found/denied, closed/at-cap composer, error |
-| `/sell` | Post-creation picker (shop vs thrift, consequences in copy). **Dead-ends** at "coming soon" — self-serve post creation has no backend yet (no `posts` INSERT policy / `create_post` RPC). | — |
+| `/sell` | Post-creation picker (shop vs thrift, consequences in copy) → real `SellForm` (Session 13d). Submit → `create_post` RPC → redirect to `/market` or `/thrift`. | field validation inline, rate-limit + generic error |
 
 New accessors (`lib/queries.ts`): `fetchThriftFeed` (available+sold, drops expired), `fetchSellerRatings` (batch), `fetchMyRequests`, `fetchRequestThread`, `fetchMyRating` (all `supabaseServer`, participant/rater-only). Actions (`app/actions/requests.ts`): `startRequest`, `sendMessage`, `setRequestStatus`, `rateSeller`, `markThriftSold`. Shared components: `RatingStars`, `SellerBadge`, `RequestButton`, `MessageComposer`, `RequestActions`, `RequestStatusPill`, `RatingPrompt`, `MarkSoldButton`, `MobileNav`, `FeedSkeleton`.
 
@@ -148,12 +148,43 @@ or another seller's individual rows; the public aggregate
 `fetchMyRating(requestId)` now backs `RatingPrompt`'s read-only "already rated"
 state on reload, not just immediately after submit.
 
-### Known gap to report (not widened here)
-- **No post-creation backend** (no `posts` INSERT policy / `create_post` RPC), so
-  the `/sell` picker is design-only until a create flow exists.
+## D. Post creation — `create_post` (Session 13d, migration 015)
+
+The first user-facing write path to `posts`. **`posts` still has zero INSERT
+policies** — it stays default-deny for direct inserts; `create_post` (security
+definer, `grant execute to authenticated` only) is the single door, same
+precedent as `record_review` / `rate_seller` / `create_request`.
+
+**Contract** — `create_post(p_type, p_title, p_description, p_price_cents,
+p_category, p_location, p_banner_color) returns uuid`. Author is always
+`auth.uid()` (never a parameter). Server-side validation (re-checked regardless
+of the client): `type ∈ {shop, thrift}` — **`app` is explicitly rejected**;
+title 2–80; description 3–500; `price_cents` 1–1,000,000 ($0.01–$10,000);
+`category` ∈ a per-type allowlist (shop: ceramics/apparel/prints/stickers/
+jewelry/plants/flowers/candles/fiber/art/food/service/other; thrift: furniture/
+electronics/textbooks/clothing/kitchen/decor/bikes/other) → stored as `tags[1]`;
+location 2–60; `banner_color` ∈ the 5 flat tokens. Sets `status`/`status_label`
+by type; leaves `expires_at` to the migration-010 trigger (thrift → +21d);
+writes **no** `karma_ledger` row (creating a post grants no karma).
+
+**Rate limit: 5 new posts per author per rolling 24h** (tighter than
+`create_request`'s 10/24h — posting should be rarer than contacting sellers).
+Rejection surfaced as a human message.
+
+**Moderation stance: posts go live immediately** — no review queue. A deliberate
+choice for a small, fully `@ucsc.edu`-gated launch population. **Revisit when
+volume demands** (spam/abuse pressure is the trigger to add a queue).
+
+Feed integration is zero-touch: new shop posts enter `/market` via the existing
+`ranked_posts` path (unboosted/unreviewed → they rank accordingly); new thrift
+posts land at the top of `/thrift` (base table, newest-first).
 
 ## Deferred (deliberately not built)
 
-- UI for thrift feed, requests/messaging, and rating (later session).
+- **Photo/image upload for listings** — planned fast-follow (Storage bucket +
+  media handling). Listings currently use the category-color-block card.
+- **Edit/delete own posts** — not built. `update_thrift_status` (mark sold) is
+  the only post mutation available; edit/delete is a known follow-up.
+- App-type (`+Ship`/Beta Board) self-serve creation — stays stubbed.
 - Karma linkage for ratings (see guardrail above).
 - Collusion/abuse hardening on requests beyond the 10/24h rate limit.

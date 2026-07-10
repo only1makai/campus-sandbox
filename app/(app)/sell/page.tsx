@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { Store, Tag, Check } from "lucide-react";
-import { fadeUp, transitionBase } from "@/lib/motion";
+import SellForm from "@/components/SellForm";
 
 type Choice = "shop" | "thrift";
 
@@ -75,21 +74,7 @@ export default function SellPage() {
         })}
       </div>
 
-      <AnimatePresence>
-        {choice && (
-          <motion.div
-            {...fadeUp}
-            transition={transitionBase}
-            className="mt-6 rounded-card border-2 border-dashed border-border-soft bg-cream p-6 text-center"
-          >
-            <p className="font-display text-heading text-ink">Self-serve posting is coming soon</p>
-            <p className="mt-1 text-body text-text-secondary">
-              We&apos;re still building the {choice === "shop" ? "storefront" : "one-time"} listing
-              form. For now, listings are added by the Sandbox team — hang tight, it&apos;s close.
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {choice && <SellForm key={choice} type={choice} />}
     </main>
   );
 }

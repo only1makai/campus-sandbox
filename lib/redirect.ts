@@ -11,7 +11,7 @@
 const FALLBACK = "/";
 
 /** Exact match, or a sub-path under these (e.g. "/market/xyz"). */
-const ALLOWED_EXACT_OR_SUBPATH = ["/market", "/ships", "/upvoted"];
+const ALLOWED_EXACT_OR_SUBPATH = ["/market", "/thrift", "/sell", "/ships", "/upvoted"];
 /** Sub-tree prefixes — a real segment must follow (e.g. "/u/sammy"). */
 const ALLOWED_SUBTREE = ["/u/"];
 

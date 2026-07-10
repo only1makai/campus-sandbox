@@ -95,7 +95,7 @@ export default function Landing({
         title="Launch your thing"
         supporting="Ship an app or sell your goods — your @ucsc.edu is all it takes to start."
         ctaLabel="Start creating →"
-        ctaHref="/login?next=/"
+        ctaHref="/login?next=/sell"
       >
         {makerRows.length > 0 && <ShippedList posts={makerRows} />}
       </Section>

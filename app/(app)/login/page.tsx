@@ -6,6 +6,7 @@ import { safeInternalPath } from "@/lib/redirect";
 /** Contextual sub-heading per known deep-link destination; unknown → none. */
 const CONTEXT_LINE: Record<string, string> = {
   "/market": "Sign in to enter the Marketplace",
+  "/sell": "Sign in to start selling",
   "/": "Sign in to explore the Beta Board",
 };
 

@@ -168,6 +168,18 @@ export type Database = {
         Returns: undefined;
       };
       profile_reputation: { Args: { p_profile_id: string }; Returns: unknown };
+      create_post: {
+        Args: {
+          p_type: string;
+          p_title: string;
+          p_description: string;
+          p_price_cents: number;
+          p_category: string;
+          p_location: string;
+          p_banner_color: string;
+        };
+        Returns: string;
+      };
       create_request: { Args: { p_post_id: string }; Returns: string };
       send_request_message: { Args: { p_request_id: string; p_body: string }; Returns: string };
       update_request_status: {
