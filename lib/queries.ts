@@ -311,6 +311,17 @@ export async function getSellerRating(sellerId: string): Promise<SellerRating> {
   return { count: raw.count ?? 0, avg: raw.avg ?? null };
 }
 
+/** How many app betas a profile has joined (public display fact; anon RPC). */
+export async function fetchBetasTested(profileId: string): Promise<number> {
+  if (envMissing()) return 0;
+  const { data, error } = await supabaseAnon().rpc("betas_tested", { p_profile_id: profileId });
+  if (error || data == null) {
+    console.warn("[queries] betas_tested failed:", error?.message);
+    return 0;
+  }
+  return data as number;
+}
+
 /**
  * Batch seller-rating lookup for a feed — dedupes ids and fans out to the
  * per-seller aggregate RPC. Display-only, never ranking (feed order is set

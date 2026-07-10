@@ -41,6 +41,62 @@ export async function updateProfileAction(input: {
 }
 
 /**
+ * Full self-service profile edit (display name + bio + college_year + pronouns +
+ * links), saved together. Handle/verified/campus stay out of reach. Each field
+ * goes through the extended update_profile_identity with its update toggle on.
+ */
+export async function saveProfileAction(input: {
+  displayName: string;
+  bio: string;
+  collegeYear: string;
+  pronouns: string;
+  githubUrl: string;
+  websiteUrl: string;
+  contactEmail: string;
+}): Promise<ProfileUpdateResult> {
+  const supabase = await supabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, reason: "auth_required" };
+
+  const name = input.displayName.trim();
+  if (name.length < 1 || name.length > 60) {
+    return { ok: false, reason: "error", message: "Display name must be 1–60 characters." };
+  }
+  if (input.bio.trim().length > 280) {
+    return { ok: false, reason: "error", message: "Bio maxes out at 280 characters." };
+  }
+
+  const { error } = await supabase.rpc("update_profile_identity", {
+    p_display_name: name,
+    p_bio: input.bio.trim() || null,
+    p_college_year: input.collegeYear.trim() || null,
+    p_pronouns: input.pronouns.trim() || null,
+    p_github_url: input.githubUrl.trim() || null,
+    p_website_url: input.websiteUrl.trim() || null,
+    p_contact_email: input.contactEmail.trim() || null,
+    p_update_display_name: true,
+    p_update_bio: true,
+    p_update_college_year: true,
+    p_update_pronouns: true,
+    p_update_github: true,
+    p_update_website: true,
+    p_update_contact_email: true,
+  });
+  if (error) {
+    const s = error.message.toLowerCase();
+    const message = s.includes("github_url") || s.includes("website_url")
+      ? "Links must start with http:// or https://."
+      : s.includes("contact_email")
+        ? "That doesn't look like a valid email address."
+        : error.message;
+    return { ok: false, reason: "error", message };
+  }
+  return { ok: true };
+}
+
+/**
  * Uploads/replaces the caller's avatar image to the `avatars` storage bucket
  * (one fixed path per user, upsert — no orphaned files) and points
  * avatar_image_url at the public URL. Bio is untouched (p_update_bio: false).

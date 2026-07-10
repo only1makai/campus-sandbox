@@ -41,6 +41,13 @@ vocabulary (above).** No karma totals, badges, or post counts live on the
 profile row — reputation is *derived* from the ledger at read time, which is
 exactly why the shared row stays clean.
 
+**Session 13c additions (all shared-generic person/contact attributes, migration
+017):** `college_year`, `pronouns`, `github_url`, `website_url`, `contact_email` —
+nullable, format-checked, edited only via the extended `update_profile_identity`
+(each behind its own update toggle; still writes the caller's own row only and
+never touches `handle`/`verified`/`campus`). No new profiles RLS policy; the
+public-SELECT / writes-via-RPC contract is unchanged.
+
 ## SANDBOX-OWNED (CAL-Links must not write; direct reads mostly blocked)
 
 | Object | Notes |

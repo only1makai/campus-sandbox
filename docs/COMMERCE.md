@@ -192,6 +192,25 @@ verified/boost karma, or tester-CTA credit. (The Request button is UI-disabled t
 "Example listing"; `create_request` itself is not server-blocked — a known,
 low-risk residual since demo sellers are real `@ucsc.edu` seed accounts.)
 
+## Studio + app testers (Session 13c)
+
+- **Fulfilled-sales stat** (Studio) = `seller_rating_summary` count. A rating
+  exists only for a fulfilled request, but not every fulfilled request is rated,
+  so this is a durable **floor** (undercount), chosen over a live count of
+  cron-ephemeral `requests`.
+- **App tester cohorts:** `testers(post_id,user_id,unique)` + denormalized
+  `posts.tester_count`. `join_as_tester` (app-only, `FOR UPDATE` cap race,
+  `+5` cosmetic karma to the maker). Individual `testers` rows are self-read only;
+  counts reach the public via `tester_count` and `betas_tested()`.
+- **Join-gated feedback:** `record_app_feedback` inserts a `reviews` row only if
+  a `testers` row exists for the (user, app), and writes **NO karma_ledger row**
+  — apps therefore still cannot accrue verified karma or a boost (RANKING.md
+  guardrail intact; `record_review` shop-only path unchanged).
+- **Review replies:** `reviews.reply`/`replied_at`, written only via
+  `reply_to_review()` (listing-owner-only); publicly readable with the review.
+- Recognition badges are **pinned** (future early-users feature); milestone karma
+  badges are OK, leaderboard-style comparisons stay cut.
+
 ## Deferred (deliberately not built)
 
 - **Photo/image upload for listings** — planned fast-follow (Storage bucket +
