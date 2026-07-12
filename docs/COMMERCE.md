@@ -33,9 +33,20 @@ seeded makers plus the Session-7 "Loop Threads: Scarf Run" ranking-test post
   `lib/queries.ts`) so no score/boost can ever leak in.
 - **Thrift auto-expiry.** `posts.expires_at` (nullable; null for app/shop) is
   stamped `now() + 21 days` by a `BEFORE INSERT` trigger for thrift rows only.
-  The feed hides listings where `status <> 'available'` or `expires_at` has
-  passed. Sellers end a listing early with `update_thrift_status(post, 'sold')`
-  (author-only). Thrift `status` vocabulary: `available` / `sold` / `expired`.
+  Sellers end a listing early with `update_thrift_status(post, 'sold')`
+  (author-only; also stamps `sold_at` — Session 14). Thrift `status` vocabulary:
+  `available` / `sold` / `expired`.
+- **Sold-item lifecycle (Session 14).** `posts.sold_at` records when a thrift
+  item was marked sold; un-marking (`update_thrift_status(post, 'available')`)
+  clears it. The live `/thrift` feed (`fetchThriftFeed`) shows an available
+  listing until `expires_at`, and a **sold** listing (faded, "No longer
+  available") for **24h after `sold_at`**, then drops it from public view. The
+  row is **never deleted** — sold posts persist forever as the seller's sales
+  history. **No automated deletion of any post exists anywhere** (the only cron
+  that touches thrift, `expire_thrift_posts`, merely flips lapsed *available* →
+  *expired*); if a deletion job is ever added, sold posts must be permanently
+  exempt. (The older `fetchThriftPosts` accessor, available-only, is not the
+  live feed.)
 - `ranked_posts` was recreated (DROP+CREATE) so its `select p.*` now also
   surfaces `expires_at`; the score formula is byte-identical to migration `006`.
 
@@ -194,10 +205,13 @@ low-risk residual since demo sellers are real `@ucsc.edu` seed accounts.)
 
 ## Studio + app testers (Session 13c)
 
-- **Fulfilled-sales stat** (Studio) = `seller_rating_summary` count. A rating
-  exists only for a fulfilled request, but not every fulfilled request is rated,
-  so this is a durable **floor** (undercount), chosen over a live count of
-  cron-ephemeral `requests`.
+- **Fulfilled-sales stat** (Studio) — as of Session 14, an **exact** count of
+  the seller's sold thrift posts (`type='thrift' && status='sold'`), now that
+  sold posts persist permanently. This replaces the earlier
+  `seller_rating_summary`-count proxy (a rated-pickups undercount, chosen back
+  when posts weren't durable). Scope: thrift's discrete one-time sales only —
+  shop's `sold_out` is a stock state, not a completed-sale event, so there's no
+  shop equivalent to fold in.
 - **App tester cohorts:** `testers(post_id,user_id,unique)` + denormalized
   `posts.tester_count`. `join_as_tester` (app-only, `FOR UPDATE` cap race,
   `+5` cosmetic karma to the maker). Individual `testers` rows are self-read only;

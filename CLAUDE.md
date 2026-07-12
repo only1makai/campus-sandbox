@@ -54,6 +54,12 @@ product (CAL-Links) will both read it. Keep it generic:
   review-trading collusion rings. Don't claim this is solved; don't silently fix it either
   — that's a future session.
 
+## Data permanence
+- **Posts are never deleted.** No cron/job/RPC deletes a `posts` row anywhere. Sold thrift
+  posts especially are permanent sales history — only their public feed visibility is
+  time-limited (24h after `sold_at`). If a deletion path is ever added, sold posts must be
+  exempt. (Requests/messages ARE cron-deleted; that's the deliberate exception — see COMMERCE.md.)
+
 ## Security conventions
 - NEVER print secret values (service_role key, DB password, anon key) in chat or output —
   names only when reporting on env vars.

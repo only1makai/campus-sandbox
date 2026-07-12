@@ -121,6 +121,7 @@ function toThriftPost(row: PostRow & { author_profile: ProfileRow }): ThriftPost
     locationLabel: row.location_label ?? "on campus",
     tags: row.tags ?? [],
     expiresAt: row.expires_at,
+    soldAt: row.sold_at,
   };
 }
 
@@ -211,22 +212,25 @@ export async function fetchThriftPreview(limit = 4): Promise<ThriftPost[]> {
 }
 
 /**
- * The live /thrift feed. Like fetchThriftPosts but ALSO keeps `sold` listings
- * visible (rendered faded on the card) while dropping expired ones — per the
- * Thrift feed spec. Structural no-ranking: base `posts` table (never
- * ranked_posts), created_at desc only. A row survives if it's sold, or it's
- * available and still within its expiry window.
+ * The live /thrift feed. Keeps `sold` listings visible (faded on the card) for
+ * **24h after sold_at**, then drops them — while available listings stay until
+ * their expiry window passes. Sold rows are never deleted; this only bounds
+ * their PUBLIC visibility (Session 14 P1). Structural no-ranking: base `posts`
+ * table (never ranked_posts), created_at desc only.
  */
 export async function fetchThriftFeed(): Promise<ThriftPost[]> {
   if (envMissing()) return [];
 
   const now = new Date().toISOString();
+  const soldCutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   const { data, error } = await supabaseAnon()
     .from("posts")
     .select("*, author_profile:profiles!posts_author_fkey(*)")
     .eq("type", "thrift")
     .in("status", ["available", "sold"])
-    .or(`status.eq.sold,expires_at.gt.${now}`)
+    .or(
+      `and(status.eq.available,expires_at.gt.${now}),and(status.eq.sold,sold_at.gt.${soldCutoff})`,
+    )
     .order("created_at", { ascending: false });
 
   if (error) throw new Error(`fetchThriftFeed failed: ${error.message}`);

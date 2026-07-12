@@ -83,6 +83,8 @@ export interface ThriftPost extends PostBase {
   tags: string[];
   /** end of the 21-day listing window; the feed hides listings past this */
   expiresAt?: string | null;
+  /** when marked sold; sold items stay in the feed for 24h, then drop out */
+  soldAt?: string | null;
 }
 
 /** The two commerce categories share a card shape but never a ranking path. */

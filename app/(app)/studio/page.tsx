@@ -7,9 +7,8 @@ import {
   fetchMyRequests,
   fetchPostsByAuthor,
   fetchStudioSummary,
-  getSellerRating,
 } from "@/lib/queries";
-import type { Post } from "@/types";
+import type { Post, ThriftPost } from "@/types";
 import ActivityChart from "@/components/ActivityChart";
 import ReplyBox from "@/components/ReplyBox";
 import SellerBadge from "@/components/SellerBadge";
@@ -48,17 +47,24 @@ export default async function StudioPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login?next=/studio");
 
-  const [summary, ships, requests, feedback, rating] = await Promise.all([
+  const [summary, ships, requests, feedback] = await Promise.all([
     fetchStudioSummary(),
     fetchPostsByAuthor(user.id),
     fetchMyRequests(user.id),
     fetchMakerFeedback(user.id),
-    getSellerRating(user.id),
   ]);
 
   const openReqs = requests
     .filter((r) => r.role === "seller" && r.status === "open")
     .sort((a, b) => Date.parse(a.lastActivityAt) - Date.parse(b.lastActivityAt));
+
+  // Sold thrift is the seller's permanent sales history — split out of the
+  // active "Your ships" list into its own "Sold" section.
+  const soldThrift = ships
+    .filter((s): s is ThriftPost => s.type === "thrift" && s.status === "sold")
+    .sort((a, b) => Date.parse(b.soldAt ?? b.createdAt) - Date.parse(a.soldAt ?? a.createdAt));
+  const activeShips = ships.filter((s) => !(s.type === "thrift" && s.status === "sold"));
+
   const liveApps = ships.filter((s) => s.type === "app").length;
   const boosts = ships.filter((s) => boostDaysLeft(s)).length;
   const name = user.profile?.displayName ?? "slug";
@@ -66,7 +72,8 @@ export default async function StudioPage() {
   const stats = [
     { icon: Sparkles, label: "Karma from testers", value: summary.karmaFromTestersWeek, hint: "this week" },
     { icon: Users, label: "New testers", value: summary.newTestersWeek, hint: "this week" },
-    { icon: ShoppingBag, label: "Fulfilled sales", value: rating.count, hint: "rated pickups" },
+    // exact count of completed thrift sales (replaces the seller_ratings proxy)
+    { icon: ShoppingBag, label: "Fulfilled sales", value: soldThrift.length, hint: "sold listings" },
   ];
 
   return (
@@ -126,11 +133,11 @@ export default async function StudioPage() {
       {/* your ships */}
       <section className="mt-8">
         <h2 className="font-display text-heading text-ink">Your ships</h2>
-        {ships.length === 0 ? (
-          <p className="mt-2 text-body text-text-faint">Nothing shipped yet.</p>
+        {activeShips.length === 0 ? (
+          <p className="mt-2 text-body text-text-faint">Nothing active right now.</p>
         ) : (
           <div className="mt-3 flex flex-col gap-2">
-            {ships.map((post) => (
+            {activeShips.map((post) => (
               <div key={post.id} className="flex items-center justify-between gap-3 rounded-card border-2 border-ink bg-card px-4 py-3 shadow-resting">
                 <div className="min-w-0">
                   <p className="truncate font-display text-card-title text-ink">{post.title}</p>
@@ -153,6 +160,28 @@ export default async function StudioPage() {
           </div>
         )}
       </section>
+
+      {/* sold history — thrift sales are permanent records */}
+      {soldThrift.length > 0 && (
+        <section className="mt-8">
+          <h2 className="font-display text-heading text-ink">Sold</h2>
+          <p className="mt-1 text-meta text-text-secondary">Your completed thrift sales.</p>
+          <div className="mt-3 flex flex-col gap-2">
+            {soldThrift.map((post) => (
+              <div key={post.id} className="flex items-center justify-between gap-3 rounded-card border-2 border-border-soft bg-cream px-4 py-3">
+                <div className="min-w-0">
+                  <p className="truncate font-display text-card-title text-ink">{post.title}</p>
+                  <p className="mt-0.5 text-meta text-text-secondary">
+                    ${(post.priceCents / 100).toFixed(post.priceCents % 100 ? 2 : 0)} · {post.category}
+                    {post.soldAt && ` · sold ${new Date(post.soldAt).toLocaleDateString()}`}
+                  </p>
+                </div>
+                <span className="shrink-0 rounded-full bg-ink px-2.5 py-0.5 text-[11px] font-semibold text-paper">Sold</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* feedback inbox */}
       <section className="mt-8">
