@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Home,
+  Radar,
   Rocket,
   ArrowBigUp,
   Users,
@@ -57,7 +57,7 @@ export default function Sidebar({ user }: { user: CurrentUser | null }) {
 
   return (
     <aside className="hidden w-64 shrink-0 flex-col gap-1 border-r-2 border-ink bg-paper px-3 py-6 md:flex">
-      <NavLink href="/" icon={<Home size={18} />} label="Beta Board" active={pathname === "/"} />
+      <NavLink href="/" icon={<Radar size={18} />} label="Beta Board" active={pathname === "/"} />
       <NavLink
         href="/market"
         icon={<Store size={18} />}

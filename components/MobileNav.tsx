@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Store, Tag, MessageSquare, User } from "lucide-react";
+import { Radar, Store, Tag, MessageSquare, User } from "lucide-react";
 
 /** Bottom tab bar for mobile — the Sidebar is desktop-only (md+). */
 export default function MobileNav({ youHref }: { youHref: string }) {
   const pathname = usePathname();
 
   const items = [
-    { href: "/", label: "Beta Board", icon: Home, match: (p: string) => p === "/" },
+    { href: "/", label: "Beta Board", icon: Radar, match: (p: string) => p === "/" },
     { href: "/market", label: "Market", icon: Store, match: (p: string) => p === "/market" },
     { href: "/thrift", label: "Thrift", icon: Tag, match: (p: string) => p === "/thrift" },
     {
