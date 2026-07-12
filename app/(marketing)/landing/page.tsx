@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { MarketPost, SellerRating } from "@/types";
 import Landing from "@/components/Landing";
+import { getCurrentUser } from "@/lib/identity";
 import {
   fetchApps,
   fetchShopPosts,
@@ -19,10 +20,11 @@ export const metadata: Metadata = {
 const CONTACT_EMAIL = "hello@campussandbox.club";
 
 export default async function LandingPage() {
-  const [apps, shop, thrift] = await Promise.all([
+  const [apps, shop, thrift, user] = await Promise.all([
     fetchApps(),
     fetchShopPosts(),
     fetchThriftPreview(3),
+    getCurrentUser(),
   ]);
 
   // §1 mixes real shop + thrift, capped at 4; render however many exist (no padding).
@@ -44,6 +46,7 @@ export default async function LandingPage() {
       ratings={ratings}
       makerRows={shopPreview}
       contactEmail={CONTACT_EMAIL}
+      loggedIn={user !== null}
     />
   );
 }

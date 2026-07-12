@@ -9,7 +9,7 @@ export default function MobileNav({ youHref }: { youHref: string }) {
   const pathname = usePathname();
 
   const items = [
-    { href: "/", label: "Home", icon: Home, match: (p: string) => p === "/" },
+    { href: "/", label: "Beta Board", icon: Home, match: (p: string) => p === "/" },
     { href: "/market", label: "Market", icon: Store, match: (p: string) => p === "/market" },
     { href: "/thrift", label: "Thrift", icon: Tag, match: (p: string) => p === "/thrift" },
     {

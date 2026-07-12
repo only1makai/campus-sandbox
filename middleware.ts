@@ -48,10 +48,11 @@ export async function middleware(request: NextRequest) {
     return rewrite;
   }
 
-  // A signed-in user should never sit on the marketing landing.
-  if (pathname === "/landing" && user) {
-    return NextResponse.redirect(new URL("/", request.url));
-  }
+  // Note: `/landing` is intentionally reachable by BOTH auth states — the header
+  // wordmark links there for everyone (Session 14). The landing page itself is
+  // auth-aware (getCurrentUser → "Back to app" + live CTAs when logged in), so
+  // there's no longer a guard bouncing signed-in visitors back to `/`. The `/`
+  // rewrite above (logged-out → landing) is unchanged.
 
   return response;
 }

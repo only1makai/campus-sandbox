@@ -16,6 +16,7 @@ export default function Landing({
   ratings,
   makerRows,
   contactEmail,
+  loggedIn = false,
 }: {
   apps: AppPost[];
   market: MarketPost[];
@@ -23,19 +24,25 @@ export default function Landing({
   ratings: Record<string, SellerRating>;
   makerRows: Post[];
   contactEmail: string;
+  /** the marketing page is reachable by signed-in users too (header wordmark) */
+  loggedIn?: boolean;
 }) {
+  // Logged-in visitors go straight to the real destination; logged-out ones
+  // route through login carrying the intent.
+  const dest = (d: string) => (loggedIn ? d : `/login?next=${d}`);
+
   return (
     <div className="min-h-full bg-paper">
-      {/* header — wordmark + single Log in, no nav */}
+      {/* header — wordmark + a single auth-aware CTA, no nav */}
       <header className="flex items-center justify-between border-b-2 border-ink bg-cream px-6 py-4">
-        <span className="rounded-chip border-2 border-ink bg-card px-3 py-1 font-display text-meta font-extrabold tracking-wide text-ink shadow-resting">
+        <Link href="/landing" className="rounded-chip border-2 border-ink bg-card px-3 py-1 font-display text-meta font-extrabold tracking-wide text-ink shadow-resting">
           CAMPUS SANDBOX
-        </span>
+        </Link>
         <Link
-          href="/login"
+          href={loggedIn ? "/" : "/login"}
           className="rounded-btn border-2 border-ink bg-gold px-4 py-1.5 font-sans text-meta font-semibold text-ink shadow-resting transition-shadow hover:shadow-elevated hover:bg-gold-hover"
         >
-          Log in
+          {loggedIn ? "Back to app" : "Log in"}
         </Link>
       </header>
 
@@ -56,7 +63,7 @@ export default function Landing({
         title="Shop student-made"
         supporting="Ceramics, stickers, secondhand finds — bought and sold by Slugs on campus."
         ctaLabel="Enter the Marketplace →"
-        ctaHref="/login?next=/market"
+        ctaHref={dest("/market")}
       >
         {market.length > 0 && (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -79,7 +86,7 @@ export default function Landing({
         title="Test what's next"
         supporting="Apps shipped by student builders, looking for their first testers."
         ctaLabel="Browse the Beta Board →"
-        ctaHref="/login?next=/"
+        ctaHref={dest("/")}
       >
         {apps.length > 0 && (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -95,7 +102,7 @@ export default function Landing({
         title="Launch your thing"
         supporting="Ship an app or sell your goods — your @ucsc.edu is all it takes to start."
         ctaLabel="Start creating →"
-        ctaHref="/login?next=/sell"
+        ctaHref={dest("/sell")}
       >
         {makerRows.length > 0 && <ShippedList posts={makerRows} />}
       </Section>

@@ -1,21 +1,13 @@
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import type { CurrentUser } from "@/types";
-import { signOutAction } from "@/app/actions/auth";
 import SearchInput from "@/components/SearchInput";
-
-const FILL: Record<string, string> = {
-  gold: "bg-gold",
-  "live-green": "bg-live-green",
-  "link-blue": "bg-link-blue",
-  tomato: "bg-tomato",
-  grape: "bg-grape",
-};
+import AccountMenu from "@/components/AccountMenu";
 
 export default function Header({ user }: { user: CurrentUser | null }) {
   return (
     <header className="flex items-center gap-2 border-b-2 border-ink bg-cream px-3 py-3 sm:gap-4 sm:px-6">
-      <Link href="/" className="flex shrink-0 items-center gap-2 text-ink">
+      <Link href="/landing" className="flex shrink-0 items-center gap-2 text-ink">
         <span
           className="flex h-8 w-8 items-center justify-center rounded-chip border-2 border-ink bg-gold text-lg shadow-resting"
           aria-hidden
@@ -41,31 +33,7 @@ export default function Header({ user }: { user: CurrentUser | null }) {
         </Link>
 
         {user ? (
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Link
-              href={user.profile ? `/u/${user.profile.handle}` : "/"}
-              className="flex items-center gap-2 hover:underline"
-            >
-              <span
-                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 border-ink text-[11px] font-bold text-white ${
-                  FILL[user.profile?.avatarColor ?? "gold"]
-                }`}
-              >
-                {(user.profile?.handle ?? user.email)[0].toUpperCase()}
-              </span>
-              <span className="hidden text-meta font-semibold text-ink sm:inline">
-                @{user.profile?.handle ?? "…"}
-              </span>
-            </Link>
-            <form action={signOutAction}>
-              <button
-                type="submit"
-                className="rounded-btn border-2 border-ink bg-card px-2 py-1.5 text-meta font-semibold text-ink shadow-resting transition-shadow hover:shadow-elevated hover:bg-paper sm:px-3"
-              >
-                Sign out
-              </button>
-            </form>
-          </div>
+          <AccountMenu user={user} />
         ) : (
           <Link
             href="/login"

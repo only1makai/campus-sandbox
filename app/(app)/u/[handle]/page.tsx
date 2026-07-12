@@ -4,6 +4,7 @@ import { Globe, ExternalLink } from "lucide-react";
 import AvatarUpload from "@/components/AvatarUpload";
 import ShippedList from "@/components/ShippedList";
 import RatingStars from "@/components/RatingStars";
+import ComingSoonChip from "@/components/ComingSoonChip";
 import { getCurrentUser, getProfileByHandle, getReputation } from "@/lib/identity";
 import { fetchBetasTested, fetchPostsByAuthor, getSellerRating } from "@/lib/queries";
 
@@ -79,6 +80,23 @@ export default async function ProfilePage({ params }: { params: Promise<{ handle
             </Link>
           )}
         </div>
+
+        {/* mobile-only workspace entry (desktop uses the sidebar) */}
+        {isOwn && (
+          <div className="mt-4 flex flex-col gap-3 md:hidden">
+            <Link
+              href="/studio"
+              className="flex items-center justify-center gap-1.5 rounded-btn border-2 border-ink bg-gold px-4 py-2 text-meta font-semibold text-ink shadow-resting transition-shadow hover:shadow-elevated hover:bg-gold-hover"
+            >
+              Open Studio
+            </Link>
+            <div className="flex flex-wrap gap-1.5">
+              <ComingSoonChip label="Following" />
+              <ComingSoonChip label="Testing" />
+              <ComingSoonChip label="Saved" />
+            </div>
+          </div>
+        )}
 
         {profile.bio ? (
           <p className="mt-4 text-body text-ink">{profile.bio}</p>
