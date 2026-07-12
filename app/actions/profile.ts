@@ -100,6 +100,12 @@ export async function saveProfileAction(input: {
  * Uploads/replaces the caller's avatar image to the `avatars` storage bucket
  * (one fixed path per user, upsert — no orphaned files) and points
  * avatar_image_url at the public URL. Bio is untouched (p_update_bio: false).
+ *
+ * The whole body after auth is wrapped in try/catch: mobile uploads (spotty
+ * networks, iPhone HEIC/File-object edge cases) can make the Storage SDK throw
+ * instead of resolving with {error} — with no guard that propagated as an
+ * unhandled exception straight to the app's crash boundary. Every failure mode
+ * now returns a graceful, human-readable result instead.
  */
 export async function uploadAvatarAction(formData: FormData): Promise<AvatarUploadResult> {
   const supabase = await supabaseServer();
@@ -108,37 +114,53 @@ export async function uploadAvatarAction(formData: FormData): Promise<AvatarUplo
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, reason: "auth_required" };
 
-  const file = formData.get("avatar");
-  if (!(file instanceof File) || file.size === 0) {
-    return { ok: false, reason: "error", message: "Choose an image file first." };
-  }
-  if (!ALLOWED_AVATAR_TYPES.has(file.type)) {
-    return { ok: false, reason: "error", message: "Avatars must be PNG, JPEG, WebP, or GIF." };
-  }
-  if (file.size > MAX_AVATAR_BYTES) {
-    return { ok: false, reason: "error", message: "Avatars max out at 5MB." };
-  }
+  try {
+    const file = formData.get("avatar");
+    if (!(file instanceof File) || file.size === 0) {
+      return { ok: false, reason: "error", message: "Choose an image file first." };
+    }
+    if (!ALLOWED_AVATAR_TYPES.has(file.type)) {
+      const isHeic = file.type === "image/heic" || file.type === "image/heif" || file.type === "";
+      return {
+        ok: false,
+        reason: "error",
+        message: isHeic
+          ? "HEIC photos aren't supported yet — in Settings → Camera → Formats, choose \"Most Compatible,\" or pick a JPEG/PNG/WebP/GIF."
+          : "Avatars must be PNG, JPEG, WebP, or GIF.",
+      };
+    }
+    if (file.size > MAX_AVATAR_BYTES) {
+      return { ok: false, reason: "error", message: "Avatars max out at 5MB." };
+    }
 
-  const path = `${user.id}/avatar`;
-  const { error: uploadError } = await supabase.storage
-    .from("avatars")
-    .upload(path, file, { upsert: true, contentType: file.type });
-  if (uploadError) {
-    return { ok: false, reason: "error", message: uploadError.message };
+    const path = `${user.id}/avatar`;
+    const { error: uploadError } = await supabase.storage
+      .from("avatars")
+      .upload(path, file, { upsert: true, contentType: file.type });
+    if (uploadError) {
+      return { ok: false, reason: "error", message: uploadError.message };
+    }
+
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("avatars").getPublicUrl(path);
+    // cache-bust so the new image shows immediately after an upsert
+    const url = `${publicUrl}?v=${Date.now()}`;
+
+    const { error: rpcError } = await supabase.rpc("update_profile_identity", {
+      p_avatar_image_url: url,
+      p_update_bio: false,
+      p_update_avatar: true,
+    });
+    if (rpcError) return { ok: false, reason: "error", message: rpcError.message };
+
+    return { ok: true, url };
+  } catch (err) {
+    console.error("[avatar] upload threw:", err);
+    return {
+      ok: false,
+      reason: "error",
+      message: "Upload failed — try again or use a different photo.",
+    };
   }
-
-  const {
-    data: { publicUrl },
-  } = supabase.storage.from("avatars").getPublicUrl(path);
-  // cache-bust so the new image shows immediately after an upsert
-  const url = `${publicUrl}?v=${Date.now()}`;
-
-  const { error: rpcError } = await supabase.rpc("update_profile_identity", {
-    p_avatar_image_url: url,
-    p_update_bio: false,
-    p_update_avatar: true,
-  });
-  if (rpcError) return { ok: false, reason: "error", message: rpcError.message };
-
-  return { ok: true, url };
 }

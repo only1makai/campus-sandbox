@@ -40,8 +40,8 @@ function NavLink({
   );
 }
 
-/** Not built yet — shown for visual completeness, honestly non-functional
- *  (same "coming soon" pattern as NetworkStrip). No fake data behind these. */
+/** Not built yet — shown for visual completeness, honestly non-functional.
+ *  No fake data behind these. */
 function ComingSoonRow({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
     <div className="flex cursor-not-allowed items-center gap-3 rounded-btn border border-dashed border-border-soft px-3 py-2 text-body text-text-faint">

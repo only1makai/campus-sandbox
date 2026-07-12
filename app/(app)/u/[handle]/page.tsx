@@ -2,7 +2,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Globe, ExternalLink } from "lucide-react";
 import AvatarUpload from "@/components/AvatarUpload";
-import NetworkStrip from "@/components/NetworkStrip";
 import ShippedList from "@/components/ShippedList";
 import RatingStars from "@/components/RatingStars";
 import { getCurrentUser, getProfileByHandle, getReputation } from "@/lib/identity";
@@ -51,10 +50,12 @@ export default async function ProfilePage({ params }: { params: Promise<{ handle
             isOwn={isOwn}
           />
           <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="font-display text-heading text-ink">{profile.displayName}</h1>
+            <div className="flex min-w-0 items-center gap-2">
+              <h1 className="min-w-0 truncate font-display text-heading text-ink">
+                {profile.displayName}
+              </h1>
               {profile.collegeYear && (
-                <span className="rounded-chip border-2 border-ink bg-cream px-2.5 py-0.5 text-meta font-semibold text-ink">
+                <span className="shrink-0 rounded-chip border-2 border-ink bg-cream px-2.5 py-0.5 text-meta font-semibold text-ink">
                   {profile.collegeYear}
                 </span>
               )}
@@ -126,8 +127,6 @@ export default async function ProfilePage({ params }: { params: Promise<{ handle
             ))}
           </div>
         )}
-
-        <NetworkStrip />
 
         <p className="mt-6 text-meta font-semibold uppercase tracking-[0.1em] text-text-faint">Ships</p>
         <ShippedList posts={apps} emptyLabel="No apps shipped yet." />

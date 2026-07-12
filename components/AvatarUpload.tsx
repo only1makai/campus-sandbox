@@ -79,7 +79,7 @@ export default function AvatarUpload({
               disabled={busy}
               onClick={() => inputRef.current?.click()}
               aria-label="Change avatar"
-              className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-ink bg-gold text-ink opacity-0 shadow-resting transition-opacity group-hover:opacity-100 disabled:opacity-60"
+              className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-ink bg-gold text-ink opacity-100 shadow-resting transition-opacity md:opacity-0 md:group-hover:opacity-100 disabled:opacity-60"
             >
               <Camera size={14} />
             </button>
