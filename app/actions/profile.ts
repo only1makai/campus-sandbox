@@ -53,6 +53,7 @@ export async function saveProfileAction(input: {
   githubUrl: string;
   websiteUrl: string;
   contactEmail: string;
+  instagramUrl: string;
 }): Promise<ProfileUpdateResult> {
   const supabase = await supabaseServer();
   const {
@@ -76,6 +77,7 @@ export async function saveProfileAction(input: {
     p_github_url: input.githubUrl.trim() || null,
     p_website_url: input.websiteUrl.trim() || null,
     p_contact_email: input.contactEmail.trim() || null,
+    p_instagram_url: input.instagramUrl.trim() || null,
     p_update_display_name: true,
     p_update_bio: true,
     p_update_college_year: true,
@@ -83,10 +85,11 @@ export async function saveProfileAction(input: {
     p_update_github: true,
     p_update_website: true,
     p_update_contact_email: true,
+    p_update_instagram: true,
   });
   if (error) {
     const s = error.message.toLowerCase();
-    const message = s.includes("github_url") || s.includes("website_url")
+    const message = s.includes("github_url") || s.includes("website_url") || s.includes("instagram_url")
       ? "Links must start with http:// or https://."
       : s.includes("contact_email")
         ? "That doesn't look like a valid email address."

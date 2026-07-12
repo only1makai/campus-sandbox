@@ -23,6 +23,7 @@ export interface Profile {
   githubUrl?: string | null;
   websiteUrl?: string | null;
   contactEmail?: string | null;
+  instagramUrl?: string | null;
 }
 
 export interface CurrentUser {

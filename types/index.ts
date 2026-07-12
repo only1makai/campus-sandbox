@@ -98,6 +98,14 @@ export interface SellerRating {
   avg: number | null;
 }
 
+/** Storefront identity — Sandbox-owned commerce fields (Studio-editable), kept
+ *  out of the shared identity Profile per IDENTITY.md. */
+export interface ShopIdentity {
+  shopName: string | null;
+  shopTagline: string | null;
+  shopBannerColor: SupportingColor | null;
+}
+
 // --- Request system (app-facing views over requests / request_messages) ---
 
 export type { RequestStatus } from "./supabase";

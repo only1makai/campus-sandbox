@@ -33,6 +33,7 @@ export default function ProfileForm({ profile }: { profile: Profile }) {
   const [githubUrl, setGithubUrl] = useState(profile.githubUrl ?? "");
   const [websiteUrl, setWebsiteUrl] = useState(profile.websiteUrl ?? "");
   const [contactEmail, setContactEmail] = useState(profile.contactEmail ?? "");
+  const [instagramUrl, setInstagramUrl] = useState(profile.instagramUrl ?? "");
   const [state, setState] = useState<"idle" | "saved">("idle");
   const [error, setError] = useState<string | null>(null);
   const [busy, startT] = useTransition();
@@ -49,6 +50,7 @@ export default function ProfileForm({ profile }: { profile: Profile }) {
         githubUrl,
         websiteUrl,
         contactEmail,
+        instagramUrl,
       });
       if (!r.ok) {
         setError(r.message ?? "Something went wrong.");
@@ -81,7 +83,7 @@ export default function ProfileForm({ profile }: { profile: Profile }) {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="College & year">
-          <input className={input} value={collegeYear} maxLength={60} onChange={(e) => setCollegeYear(e.target.value)} placeholder="Kresge · CS '27" />
+          <input className={input} value={collegeYear} maxLength={60} onChange={(e) => setCollegeYear(e.target.value)} placeholder="College Ten · TIM '28" />
         </Field>
         <Field label="Pronouns">
           <input className={input} value={pronouns} maxLength={40} onChange={(e) => setPronouns(e.target.value)} placeholder="they/them" />
@@ -93,6 +95,9 @@ export default function ProfileForm({ profile }: { profile: Profile }) {
       </Field>
       <Field label="Website">
         <input className={input} value={websiteUrl} onChange={(e) => setWebsiteUrl(e.target.value)} placeholder="https://…" />
+      </Field>
+      <Field label="Instagram">
+        <input className={input} value={instagramUrl} onChange={(e) => setInstagramUrl(e.target.value)} placeholder="https://instagram.com/…" />
       </Field>
       <Field label="Contact email">
         <input className={input} value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} placeholder="you@ucsc.edu" />

@@ -56,6 +56,7 @@ export function toProfile(row: ProfileRow): Profile {
     githubUrl: row.github_url,
     websiteUrl: row.website_url,
     contactEmail: row.contact_email,
+    instagramUrl: row.instagram_url,
   };
 }
 

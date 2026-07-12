@@ -19,6 +19,10 @@ export type ProfileRow = {
   github_url: string | null;
   website_url: string | null;
   contact_email: string | null;
+  instagram_url: string | null;
+  shop_name: string | null;
+  shop_tagline: string | null;
+  shop_banner_color: string | null;
   created_at: string;
 };
 
@@ -204,6 +208,7 @@ export type Database = {
           /** locked once non-null — update_profile_identity rejects changing an
            *  existing handle; only a one-time set from null is allowed. */
           p_handle?: string | null;
+          p_instagram_url?: string | null;
           p_update_bio?: boolean;
           p_update_avatar?: boolean;
           p_update_display_name?: boolean;
@@ -213,6 +218,15 @@ export type Database = {
           p_update_website?: boolean;
           p_update_contact_email?: boolean;
           p_update_handle?: boolean;
+          p_update_instagram?: boolean;
+        };
+        Returns: undefined;
+      };
+      update_shop_profile: {
+        Args: {
+          p_shop_name: string | null;
+          p_shop_tagline: string | null;
+          p_shop_banner_color: string | null;
         };
         Returns: undefined;
       };

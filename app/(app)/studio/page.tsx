@@ -6,12 +6,14 @@ import {
   fetchMakerFeedback,
   fetchMyRequests,
   fetchPostsByAuthor,
+  fetchShopIdentity,
   fetchStudioSummary,
 } from "@/lib/queries";
 import type { Post, ThriftPost } from "@/types";
 import ActivityChart from "@/components/ActivityChart";
 import ReplyBox from "@/components/ReplyBox";
 import SellerBadge from "@/components/SellerBadge";
+import ShopIdentityForm from "@/components/ShopIdentityForm";
 
 export const dynamic = "force-dynamic";
 
@@ -47,11 +49,12 @@ export default async function StudioPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login?next=/studio");
 
-  const [summary, ships, requests, feedback] = await Promise.all([
+  const [summary, ships, requests, feedback, shopIdentity] = await Promise.all([
     fetchStudioSummary(),
     fetchPostsByAuthor(user.id),
     fetchMyRequests(user.id),
     fetchMakerFeedback(user.id),
+    fetchShopIdentity(user.id),
   ]);
 
   const openReqs = requests
@@ -182,6 +185,16 @@ export default async function StudioPage() {
           </div>
         </section>
       )}
+
+      {/* storefront — the banner shown on your public Selling section */}
+      <section className="mt-8 rounded-card border-2 border-ink bg-card p-6 shadow-resting">
+        <h2 className="font-display text-heading text-ink">Storefront</h2>
+        <p className="mt-1 text-meta text-text-secondary">
+          Give your Marketplace/Thrift listings a shop name + banner on your profile. Leave blank to
+          show your listings without a storefront header.
+        </p>
+        <ShopIdentityForm identity={shopIdentity} />
+      </section>
 
       {/* feedback inbox */}
       <section className="mt-8">

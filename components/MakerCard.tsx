@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Clock, MessageSquarePlus } from "lucide-react";
@@ -151,7 +152,16 @@ export default function MakerCard({
 
       {/* content */}
       <div className="flex min-w-0 flex-1 flex-col gap-2 p-4">
-        <SellerBadge profile={product.author} rating={rating} />
+        {/* real posts link to the seller's profile; demo sellers aren't real
+            destinations. Sits above the Request/MarkSold action, so its tap area
+            never overlaps them. */}
+        {product.isDemo ? (
+          <SellerBadge profile={product.author} rating={rating} />
+        ) : (
+          <Link href={`/u/${product.author.handle}`} className="w-fit rounded-btn hover:underline">
+            <SellerBadge profile={product.author} rating={rating} />
+          </Link>
+        )}
 
         <h3 className="font-display text-card-title text-ink">{product.title}</h3>
 

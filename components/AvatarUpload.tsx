@@ -56,17 +56,17 @@ export default function AvatarUpload({
 
   return (
     <div className="flex flex-col gap-1">
-      <div className="group relative h-20 w-20 shrink-0">
+      <div className="group relative h-28 w-28 shrink-0">
         {shown ? (
           // eslint-disable-next-line @next/next/no-img-element -- Supabase Storage public URL
           <img
             src={shown}
             alt={`@${handle} avatar`}
-            className="h-20 w-20 rounded-chip border-2 border-ink object-cover shadow-resting"
+            className="h-28 w-28 rounded-chip border-2 border-ink object-cover shadow-resting"
           />
         ) : (
           <span
-            className={`flex h-20 w-20 items-center justify-center rounded-chip border-2 border-ink font-display text-4xl font-extrabold text-white shadow-resting ${FILL[avatarColor]}`}
+            className={`flex h-28 w-28 items-center justify-center rounded-chip border-2 border-ink font-display text-4xl font-extrabold text-white shadow-resting ${FILL[avatarColor]}`}
           >
             {handle[0].toUpperCase()}
           </span>

@@ -15,6 +15,24 @@ async function actor() {
   return { supabase, user };
 }
 
+/** Saves the seller's storefront identity (shop name/tagline/banner color). */
+export async function saveShopIdentity(input: {
+  shopName: string;
+  shopTagline: string;
+  shopBannerColor: string;
+}): Promise<StudioResult> {
+  const { supabase, user } = await actor();
+  if (!user) return { ok: false, reason: "auth_required" };
+  const { error } = await supabase.rpc("update_shop_profile", {
+    p_shop_name: input.shopName.trim() || null,
+    p_shop_tagline: input.shopTagline.trim() || null,
+    p_shop_banner_color: input.shopBannerColor || null,
+  });
+  if (error) return { ok: false, reason: "error", message: error.message };
+  revalidatePath("/studio");
+  return { ok: true };
+}
+
 /** Maker replies to a review on their listing (owner-only, enforced in the RPC). */
 export async function replyToReview(reviewId: string, reply: string): Promise<StudioResult> {
   const { supabase, user } = await actor();

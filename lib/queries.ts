@@ -10,6 +10,7 @@ import type {
   RequestSummary,
   RequestThread,
   SellerRating,
+  ShopIdentity,
   StudioSummary,
   ShopPost,
   ShopStatus,
@@ -313,6 +314,27 @@ export async function getSellerRating(sellerId: string): Promise<SellerRating> {
   }
   const raw = data as { count: number; avg: number | null };
   return { count: raw.count ?? 0, avg: raw.avg ?? null };
+}
+
+/**
+ * A profile's storefront identity (shop_name/tagline/banner_color). Sandbox-
+ * owned commerce fields read directly from the public `profiles` row — kept in
+ * the Sandbox query layer, not lib/identity, per IDENTITY.md's boundary.
+ */
+export async function fetchShopIdentity(profileId: string): Promise<ShopIdentity> {
+  const empty: ShopIdentity = { shopName: null, shopTagline: null, shopBannerColor: null };
+  if (envMissing()) return empty;
+  const { data, error } = await supabaseAnon()
+    .from("profiles")
+    .select("shop_name, shop_tagline, shop_banner_color")
+    .eq("id", profileId)
+    .maybeSingle();
+  if (error || !data) return empty;
+  return {
+    shopName: data.shop_name,
+    shopTagline: data.shop_tagline,
+    shopBannerColor: (data.shop_banner_color ?? null) as ShopIdentity["shopBannerColor"],
+  };
 }
 
 /** How many app betas a profile has joined (public display fact; anon RPC). */
