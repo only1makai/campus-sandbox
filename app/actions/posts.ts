@@ -12,6 +12,10 @@ export type CreateListingInput = {
   category: string;
   location: string;
   bannerColor: string;
+  /** ordered public URLs; element 0 is the card image (≤3 shop / ≤1 thrift) */
+  imageUrls?: string[];
+  /** thrift-only, optional item condition (New/Like new/Good/Used/Well-loved) */
+  condition?: string | null;
 };
 
 export type CreateListingResult =
@@ -48,6 +52,8 @@ export async function createListing(input: CreateListingInput): Promise<CreateLi
     p_category: input.category,
     p_location: input.location,
     p_banner_color: input.bannerColor,
+    p_image_urls: input.imageUrls?.length ? input.imageUrls : null,
+    p_condition: input.condition ?? null,
   });
 
   if (error || !data) {

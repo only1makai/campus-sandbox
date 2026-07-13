@@ -7,6 +7,8 @@ import type { SupportingColor } from "@/types";
 import { createListing } from "@/app/actions/posts";
 import { FILL } from "@/lib/colors";
 import { tapPress, transitionFast } from "@/lib/motion";
+import ListingImageUploader from "@/components/ListingImageUploader";
+import ConditionSelect from "@/components/ConditionSelect";
 
 /** Category allowlists mirror create_post (migration 015) exactly. */
 const CATEGORIES: Record<"shop" | "thrift", string[]> = {
@@ -47,6 +49,8 @@ function Field({
 export default function SellForm({ type }: { type: "shop" | "thrift" }) {
   const router = useRouter();
   const cats = CATEGORIES[type];
+  const descMax = type === "shop" ? 600 : 280;
+  const maxImages = type === "shop" ? 3 : 1;
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -54,6 +58,10 @@ export default function SellForm({ type }: { type: "shop" | "thrift" }) {
   const [category, setCategory] = useState(cats[0]);
   const [location, setLocation] = useState("");
   const [bannerColor, setBannerColor] = useState<SupportingColor>("gold");
+  const [images, setImages] = useState<string[]>([]);
+  const [condition, setCondition] = useState("");
+  // groups this draft's uploaded photos under one Storage folder
+  const [token] = useState(() => crypto.randomUUID());
   const [fieldErr, setFieldErr] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
   const [busy, startT] = useTransition();
@@ -65,7 +73,7 @@ export default function SellForm({ type }: { type: "shop" | "thrift" }) {
     const t = title.trim();
     if (t.length < 2 || t.length > 80) e.title = "Title must be 2–80 characters.";
     const d = description.trim();
-    if (d.length < 3 || d.length > 500) e.description = "Description must be 3–500 characters.";
+    if (d.length < 3 || d.length > descMax) e.description = `Description must be 3–${descMax} characters.`;
     if (!Number.isFinite(priceCents) || priceCents < 1 || priceCents > 1_000_000) {
       e.price = "Price must be between $0.01 and $10,000.";
     }
@@ -90,6 +98,8 @@ export default function SellForm({ type }: { type: "shop" | "thrift" }) {
         category,
         location: location.trim(),
         bannerColor,
+        imageUrls: images,
+        condition: type === "thrift" ? condition || null : null,
       });
       if (!result.ok) {
         if (result.reason === "auth_required") {
@@ -111,6 +121,8 @@ export default function SellForm({ type }: { type: "shop" | "thrift" }) {
         submit();
       }}
     >
+      <ListingImageUploader max={maxImages} token={token} value={images} onChange={setImages} />
+
       <Field label="Title" error={fieldErr.title}>
         <input
           className={inputClass}
@@ -121,16 +133,27 @@ export default function SellForm({ type }: { type: "shop" | "thrift" }) {
         />
       </Field>
 
-      <Field label="Description" error={fieldErr.description}>
+      <label className="flex flex-col gap-1">
+        <span className="flex items-center justify-between text-meta font-semibold text-ink">
+          Description
+          <span className="font-normal text-text-faint">
+            {description.length}/{descMax}
+          </span>
+        </span>
         <textarea
           className={inputClass}
           value={description}
-          rows={3}
-          maxLength={500}
+          rows={type === "shop" ? 4 : 3}
+          maxLength={descMax}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="What is it, condition, anything a buyer should know."
         />
-      </Field>
+        {fieldErr.description && (
+          <span className="text-meta font-semibold text-tomato">{fieldErr.description}</span>
+        )}
+      </label>
+
+      {type === "thrift" && <ConditionSelect value={condition} onChange={setCondition} />}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Price (USD)" error={fieldErr.price}>
