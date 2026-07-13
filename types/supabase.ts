@@ -23,6 +23,10 @@ export type ProfileRow = {
   shop_name: string | null;
   shop_tagline: string | null;
   shop_banner_color: string | null;
+  shop_hero_url: string | null;
+  specialty_tags: string[] | null;
+  accepts_custom: boolean;
+  shop_story: string | null;
   created_at: string;
 };
 
@@ -49,6 +53,10 @@ export type PostRow = {
   expires_at: string | null;
   /** thrift only: when marked sold (null otherwise); row persists forever */
   sold_at: string | null;
+  /** listing photos; element 0 = card image. ≤3 shop / ≤1 thrift. null on app/legacy */
+  image_urls: string[] | null;
+  /** thrift only: New/Like new/Good/Used/Well-loved (optional); null otherwise */
+  condition: string | null;
   /** seeded placeholder post — cannot accrue real karma/reviews/ratings */
   is_demo: boolean;
   /** when this post was FIRST boosted (null = never); caps boost at first+30d */
@@ -227,6 +235,10 @@ export type Database = {
           p_shop_name: string | null;
           p_shop_tagline: string | null;
           p_shop_banner_color: string | null;
+          p_shop_hero_url?: string | null;
+          p_specialty_tags?: string[] | null;
+          p_accepts_custom?: boolean;
+          p_shop_story?: string | null;
         };
         Returns: undefined;
       };
@@ -255,6 +267,8 @@ export type Database = {
           p_category: string;
           p_location: string;
           p_banner_color: string;
+          p_image_urls?: string[] | null;
+          p_condition?: string | null;
         };
         Returns: string;
       };

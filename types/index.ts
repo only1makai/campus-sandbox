@@ -64,6 +64,9 @@ export interface ShopPost extends PostBase {
   locationLabel: string;
   tags: string[];
   reviewCount: number;
+  /** listing photos; element 0 is the card image (up to 3). Empty/undefined =
+   *  no photo → the category color block renders instead (legacy-safe). */
+  imageUrls?: string[];
 }
 
 export type ThriftStatus = "available" | "sold" | "expired";
@@ -85,6 +88,10 @@ export interface ThriftPost extends PostBase {
   expiresAt?: string | null;
   /** when marked sold; sold items stay in the feed for 24h, then drop out */
   soldAt?: string | null;
+  /** single listing photo (element 0). Empty/undefined → color block. */
+  imageUrls?: string[];
+  /** optional item condition (New/Like new/Good/Used/Well-loved); null = no badge */
+  condition?: string | null;
 }
 
 /** The two commerce categories share a card shape but never a ranking path. */
@@ -104,6 +111,14 @@ export interface ShopIdentity {
   shopName: string | null;
   shopTagline: string | null;
   shopBannerColor: SupportingColor | null;
+  /** wide storefront banner image (or null → banner-color tint) */
+  shopHeroUrl: string | null;
+  /** up to 5 specialty chips shown on the storefront block */
+  specialtyTags: string[];
+  /** "Accepting custom orders" badge toggle */
+  acceptsCustom: boolean;
+  /** short shop story (≤400 chars) */
+  shopStory: string | null;
 }
 
 // --- Request system (app-facing views over requests / request_messages) ---

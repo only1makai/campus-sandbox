@@ -99,6 +99,7 @@ function toShopPost(row: ShopWithAuthor): ShopPost {
     locationLabel: row.location_label ?? "on campus",
     tags: row.tags ?? [],
     reviewCount: row.reviews?.[0]?.count ?? 0,
+    imageUrls: row.image_urls ?? undefined,
   };
 }
 
@@ -123,6 +124,8 @@ function toThriftPost(row: PostRow & { author_profile: ProfileRow }): ThriftPost
     tags: row.tags ?? [],
     expiresAt: row.expires_at,
     soldAt: row.sold_at,
+    imageUrls: row.image_urls ?? undefined,
+    condition: row.condition,
   };
 }
 
@@ -322,11 +325,19 @@ export async function getSellerRating(sellerId: string): Promise<SellerRating> {
  * the Sandbox query layer, not lib/identity, per IDENTITY.md's boundary.
  */
 export async function fetchShopIdentity(profileId: string): Promise<ShopIdentity> {
-  const empty: ShopIdentity = { shopName: null, shopTagline: null, shopBannerColor: null };
+  const empty: ShopIdentity = {
+    shopName: null,
+    shopTagline: null,
+    shopBannerColor: null,
+    shopHeroUrl: null,
+    specialtyTags: [],
+    acceptsCustom: false,
+    shopStory: null,
+  };
   if (envMissing()) return empty;
   const { data, error } = await supabaseAnon()
     .from("profiles")
-    .select("shop_name, shop_tagline, shop_banner_color")
+    .select("shop_name, shop_tagline, shop_banner_color, shop_hero_url, specialty_tags, accepts_custom, shop_story")
     .eq("id", profileId)
     .maybeSingle();
   if (error || !data) return empty;
@@ -334,6 +345,10 @@ export async function fetchShopIdentity(profileId: string): Promise<ShopIdentity
     shopName: data.shop_name,
     shopTagline: data.shop_tagline,
     shopBannerColor: (data.shop_banner_color ?? null) as ShopIdentity["shopBannerColor"],
+    shopHeroUrl: data.shop_hero_url ?? null,
+    specialtyTags: data.specialty_tags ?? [],
+    acceptsCustom: data.accepts_custom ?? false,
+    shopStory: data.shop_story ?? null,
   };
 }
 

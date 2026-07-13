@@ -190,6 +190,55 @@ Feed integration is zero-touch: new shop posts enter `/market` via the existing
 `ranked_posts` path (unboosted/unreviewed → they rank accordingly); new thrift
 posts land at the top of `/thrift` (base table, newest-first).
 
+## E. Listing photos + condition + storefront identity (Session 16, migration 021)
+
+**Image contract.** `posts.image_urls text[]` (nullable). **Element 0 is the card
+image**; the rest show only in the detail-view gallery. Count is enforced in
+`create_post` (not a table constraint, which can't branch on type): **≤3 for shop,
+≤1 for thrift**. Each URL must point at our Storage public prefix
+(`.../storage/v1/object/public/listing-images/`) — an off-site URL is rejected.
+`null`/empty is always allowed, so legacy rows and app posts are unaffected and
+render the category color block exactly as before. **Photos have zero effect on
+ranking, karma, or boost** — `ranked_posts` was DROP+CREATE'd only so `select p.*`
+surfaces the new columns; the score formula is byte-identical to migration 006/017.
+
+**Condition.** `posts.condition text` (nullable), **thrift only**, **optional**.
+Allowlist (table CHECK + RPC): `New / Like new / Good / Used / Well-loved`.
+`create_post` rejects a condition on a shop post; a new thrift post may omit it
+(stored null → renders no badge, same as pre-021 thrift rows). Un-viewable rows
+never grow a placeholder.
+
+**Per-type description bounds (changed).** `create_post` description validation was
+a flat **3–500**; it is now **per-type: shop 3–600, thrift 3–280**. Titles (2–80),
+price ($0.01–$10,000), category allowlists, location (2–60), banner color, the
+`app`-rejection, the 5-posts/24h rate limit, and "creating a post grants no karma"
+are all unchanged. `create_post` grew from 7 args to 9 (`p_image_urls`,
+`p_condition`); the revoke/grant arg lists and `types/supabase.ts` were updated to
+match. `posts` still has **no INSERT/UPDATE policy** — `create_post` remains the
+only write door.
+
+**Storefront identity (extends Session 14).** `profiles` gains `shop_hero_url text`,
+`specialty_tags text[]` (CHECK ≤5), `accepts_custom boolean not null default false`,
+`shop_story text` (CHECK ≤400). Written Studio-only via `update_shop_profile` (grew
+3→7 args, same owner-only gate; tag-count and story-length validated in-RPC too).
+Read via the Sandbox accessor `fetchShopIdentity` (kept out of `lib/identity` per
+IDENTITY.md). Unset fields render nothing on the public storefront block (no
+placeholders); a profile with no shop identity renders exactly as before.
+
+**Storage: `listing-images` bucket.** Public read, 5 MB cap, `png/jpeg/webp/gif`.
+Two `storage.objects` policies only — public SELECT and owner-prefix INSERT
+(`(storage.foldername(name))[1] = auth.uid()::text`). **No UPDATE/DELETE policies**,
+tying to the creation-only limitation: there is no listing-edit path, and re-picking
+a photo in the uploader writes a fresh path rather than overwriting. Path scheme:
+listing photos `{uid}/{draftToken}/{n}.{ext}`, shop hero `{uid}/hero/{token}.{ext}`.
+
+**Creation-time-only + orphaned objects (future concern).** Photos and condition are
+set at creation and cannot be edited afterward (the documented no-edit gap). Because
+there is no DELETE policy and no post-deletion path, Storage objects for a listing
+persist even if a draft is abandoned mid-upload — **orphaned-object cleanup is not
+built** and only becomes relevant once post deletion exists (at which point sold
+posts must stay exempt, per CLAUDE.md's data-permanence rule). Noted, not built.
+
 ## Demo posts (Session 13e)
 
 `posts.is_demo` flags the seeded placeholder content (backfilled by the 12
