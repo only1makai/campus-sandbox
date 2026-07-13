@@ -17,6 +17,7 @@ export default function AccountMenu({ user }: { user: CurrentUser }) {
   const ref = useRef<HTMLDivElement>(null);
   const handle = user.profile?.handle;
   const initial = (user.profile?.handle ?? user.email)[0].toUpperCase();
+  const avatarUrl = user.profile?.avatarImageUrl;
 
   useEffect(() => {
     if (!open) return;
@@ -46,13 +47,22 @@ export default function AccountMenu({ user }: { user: CurrentUser }) {
         aria-expanded={open}
         className="flex items-center gap-1.5 rounded-btn border-2 border-ink bg-card px-1.5 py-1 shadow-resting transition-shadow hover:shadow-elevated sm:px-2"
       >
-        <span
-          className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-ink text-[11px] font-bold text-white ${
-            FILL[user.profile?.avatarColor ?? "gold"]
-          }`}
-        >
-          {initial}
-        </span>
+        {avatarUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element -- Supabase Storage public URL
+          <img
+            src={avatarUrl}
+            alt=""
+            className="h-6 w-6 shrink-0 rounded-full border-2 border-ink object-cover"
+          />
+        ) : (
+          <span
+            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-ink text-[11px] font-bold text-white ${
+              FILL[user.profile?.avatarColor ?? "gold"]
+            }`}
+          >
+            {initial}
+          </span>
+        )}
         <span className="hidden text-meta font-semibold text-ink sm:inline">@{handle ?? "…"}</span>
         <ChevronDown size={14} className="text-text-secondary" />
       </button>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Camera } from "lucide-react";
 import type { SupportingColor } from "@/types";
 import { uploadAvatarAction } from "@/app/actions/profile";
@@ -30,6 +31,7 @@ export default function AvatarUpload({
   initialImageUrl: string | null;
   isOwn: boolean;
 }) {
+  const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [imageUrl, setImageUrl] = useState(initialImageUrl);
   const [preview, setPreview] = useState<string | null>(null);
@@ -49,6 +51,9 @@ export default function AvatarUpload({
         return;
       }
       setImageUrl(result.url);
+      // Re-render server components (incl. the layout Header/AccountMenu) so the
+      // new photo shows in the header too, not just this component's local state.
+      router.refresh();
     });
   };
 
