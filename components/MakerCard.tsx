@@ -12,6 +12,8 @@ import DemoBadge from "@/components/DemoBadge";
 import RequestButton from "@/components/RequestButton";
 import MarkSoldButton from "@/components/MarkSoldButton";
 import SellerBadge from "@/components/SellerBadge";
+import ShopHeader from "@/components/ShopHeader";
+import ConditionBadge from "@/components/ConditionBadge";
 import { FILL } from "@/lib/colors";
 import { hoverLift, tapPress, transitionBase, transitionFast } from "@/lib/motion";
 
@@ -71,6 +73,8 @@ export default function MakerCard({
   const urgent = daysLeft !== null && daysLeft <= 2;
   const price = `$${(product.priceCents / 100).toFixed(product.priceCents % 100 ? 2 : 0)}`;
   const category = (product.category ?? "goods").toUpperCase();
+  const cardImage = product.imageUrls?.[0];
+  const hasPhoto = !!cardImage;
 
   // Review is shop-only, write-gated, never on your own shop, demo, or preview.
   const showReview = product.type === "shop" && !readOnly && !isOwn && !product.isDemo;
@@ -111,13 +115,30 @@ export default function MakerCard({
         isSold ? "opacity-75" : ""
       }`}
     >
-      {/* color block — left rail on mobile, top banner on desktop */}
+      {/* photo (element 0) or, when there's none, the category color block —
+          left rail on mobile, top banner on desktop. Same slot either way, so
+          legacy/demo rows (no photo) render exactly as before. */}
       <div
-        className={`relative flex w-28 shrink-0 items-center justify-center p-3 sm:h-32 sm:w-full ${FILL[product.bannerColor]}`}
+        className={`relative flex w-28 shrink-0 items-center justify-center p-3 sm:h-32 sm:w-full ${
+          hasPhoto ? "bg-cream" : FILL[product.bannerColor]
+        }`}
       >
-        <span className="text-center text-[11px] font-semibold uppercase tracking-[0.14em] text-ink/60">
-          {category}
-        </span>
+        {hasPhoto ? (
+          // eslint-disable-next-line @next/next/no-img-element -- Supabase Storage public URL
+          <img src={cardImage} alt={product.title} className="absolute inset-0 h-full w-full object-cover" />
+        ) : (
+          <span className="text-center text-[11px] font-semibold uppercase tracking-[0.14em] text-ink/60">
+            {category}
+          </span>
+        )}
+
+        {/* category chip sits on the photo (top-right; no photo already shows the
+            centered label). Clear of the time chip (top-left) and price (bottom). */}
+        {hasPhoto && (
+          <span className="absolute right-2 top-2 rounded-full border border-ink bg-card/90 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink">
+            {category}
+          </span>
+        )}
 
         {product.isDemo && <DemoBadge className="absolute left-2 top-2" />}
 
@@ -152,18 +173,36 @@ export default function MakerCard({
 
       {/* content */}
       <div className="flex min-w-0 flex-1 flex-col gap-2 p-4">
-        {/* real posts link to the seller's profile; demo sellers aren't real
-            destinations. Sits above the Request/MarkSold action, so its tap area
-            never overlaps them. */}
-        {product.isDemo ? (
-          <SellerBadge profile={product.author} rating={rating} />
-        ) : (
-          <Link href={`/u/${product.author.handle}`} className="w-fit rounded-btn hover:underline">
-            <SellerBadge profile={product.author} rating={rating} />
-          </Link>
-        )}
+        {/* seller block — shop shows the storefront ShopHeader (3 fallbacks live
+            inside it); thrift stays a plain @handle seller. Real posts link to
+            the profile; demo sellers aren't real destinations. Sits above the
+            Request/MarkSold action, so its tap area never overlaps them. */}
+        {(() => {
+          const block =
+            product.type === "shop" ? (
+              <ShopHeader
+                profile={product.author}
+                shopName={product.shopName}
+                shopTagline={product.shopTagline}
+                bannerColor={product.shopBannerColor}
+                rating={rating}
+              />
+            ) : (
+              <SellerBadge profile={product.author} rating={rating} />
+            );
+          return product.isDemo ? (
+            block
+          ) : (
+            <Link href={`/u/${product.author.handle}`} className="w-fit rounded-btn hover:underline">
+              {block}
+            </Link>
+          );
+        })()}
 
         <h3 className="font-display text-card-title text-ink">{product.title}</h3>
+
+        {/* thrift condition — body only, never on the photo. Null → nothing. */}
+        {product.type === "thrift" && <ConditionBadge condition={product.condition} />}
 
         {/* primary action — example / request / owner / sold (hidden in preview) */}
         {!readOnly &&

@@ -67,6 +67,12 @@ export interface ShopPost extends PostBase {
   /** listing photos; element 0 is the card image (up to 3). Empty/undefined =
    *  no photo → the category color block renders instead (legacy-safe). */
   imageUrls?: string[];
+  /** seller's storefront identity (from the author profile row) — drives the
+   *  card/detail ShopHeader. Sandbox-owned commerce data on the ShopPost, kept
+   *  OFF the shared Profile per IDENTITY.md. Null shopName → individual seller. */
+  shopName?: string | null;
+  shopTagline?: string | null;
+  shopBannerColor?: SupportingColor | null;
 }
 
 export type ThriftStatus = "available" | "sold" | "expired";

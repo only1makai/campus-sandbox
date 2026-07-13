@@ -100,6 +100,11 @@ function toShopPost(row: ShopWithAuthor): ShopPost {
     tags: row.tags ?? [],
     reviewCount: row.reviews?.[0]?.count ?? 0,
     imageUrls: row.image_urls ?? undefined,
+    // storefront identity read straight off the author profile row (select *),
+    // NOT via toProfile — shop fields stay off the shared Profile type.
+    shopName: row.author_profile.shop_name,
+    shopTagline: row.author_profile.shop_tagline,
+    shopBannerColor: (row.author_profile.shop_banner_color ?? null) as SupportingColor | null,
   };
 }
 
