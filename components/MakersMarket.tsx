@@ -40,7 +40,7 @@ export default function MakersMarket({
 
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-12">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <h1 className="font-display text-display text-ink">Marketplace</h1>
           <p className="mt-1 text-body text-text-secondary">
@@ -49,7 +49,7 @@ export default function MakersMarket({
         </div>
 
         {/* sort control — only the two orders the backend already supports */}
-        <label className="flex shrink-0 items-center gap-2 rounded-btn border-2 border-ink bg-card px-3 py-1.5 text-meta font-semibold text-ink shadow-resting">
+        <label className="flex shrink-0 items-center gap-2 self-start rounded-btn border-2 border-ink bg-card px-3 py-1.5 text-meta font-semibold text-ink shadow-resting">
           Sort:
           <select
             value={sort}

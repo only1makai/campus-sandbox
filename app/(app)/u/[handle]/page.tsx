@@ -48,36 +48,38 @@ export default async function ProfilePage({ params }: { params: Promise<{ handle
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-12">
       <div className="rounded-card border-2 border-ink bg-card p-8 shadow-resting">
-        <div className="flex items-start gap-4">
-          <AvatarUpload
-            handle={profile.handle}
-            avatarColor={profile.avatarColor}
-            initialImageUrl={profile.avatarImageUrl ?? null}
-            isOwn={isOwn}
-          />
-          <div className="min-w-0 flex-1">
-            <div className="flex min-w-0 items-center gap-2">
-              <h1 className="min-w-0 truncate font-display text-heading text-ink">
-                {profile.displayName}
-              </h1>
-              {profile.collegeYear && (
-                <span className="shrink-0 rounded-chip border-2 border-ink bg-cream px-2.5 py-0.5 text-meta font-semibold text-ink">
-                  {profile.collegeYear}
-                </span>
-              )}
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex min-w-0 flex-1 items-start gap-4">
+            <AvatarUpload
+              handle={profile.handle}
+              avatarColor={profile.avatarColor}
+              initialImageUrl={profile.avatarImageUrl ?? null}
+              isOwn={isOwn}
+            />
+            <div className="min-w-0">
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
+                <h1 className="min-w-0 truncate font-display text-heading text-ink">
+                  {profile.displayName}
+                </h1>
+                {profile.collegeYear && (
+                  <span className="shrink-0 rounded-chip border-2 border-ink bg-cream px-2.5 py-0.5 text-meta font-semibold text-ink">
+                    {profile.collegeYear}
+                  </span>
+                )}
+              </div>
+              <p className="flex flex-wrap items-center gap-2 text-body text-text-secondary">
+                @{profile.handle}
+                {profile.verified && (
+                  <span
+                    title="Verified UCSC student"
+                    className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-live-green text-white"
+                  >
+                    <Check size={11} strokeWidth={3} />
+                  </span>
+                )}
+                {profile.pronouns && <span className="text-text-faint">· {profile.pronouns}</span>}
+              </p>
             </div>
-            <p className="flex flex-wrap items-center gap-2 text-body text-text-secondary">
-              @{profile.handle}
-              {profile.verified && (
-                <span
-                  title="Verified UCSC student"
-                  className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-live-green text-white"
-                >
-                  <Check size={11} strokeWidth={3} />
-                </span>
-              )}
-              {profile.pronouns && <span className="text-text-faint">· {profile.pronouns}</span>}
-            </p>
           </div>
           {isOwn && (
             <Link
