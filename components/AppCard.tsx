@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowBigUp, Smartphone, Globe } from "lucide-react";
@@ -94,10 +95,20 @@ export default function AppCard({
       exit={{ opacity: 0 }}
       whileHover={hoverLift}
       transition={{ ...transitionBase, layout: transitionBase }}
-      className={`flex flex-col overflow-hidden rounded-card border-2 shadow-resting transition-shadow duration-150 hover:shadow-elevated ${
+      className={`relative flex flex-col overflow-hidden rounded-card border-2 shadow-resting transition-shadow duration-150 hover:shadow-elevated ${
         betaFull ? "border-dashed border-text-faint bg-paper" : "border-ink bg-card"
       }`}
     >
+      {/* whole-card link opens the detail overlay; upvote + CTA/tester actions
+          sit at z-10 above it. Stripped in the landing preview. */}
+      {!readOnly && (
+        <Link
+          href={`/p/${app.id}`}
+          aria-label={`View ${app.title}`}
+          className="absolute inset-0 z-0"
+        />
+      )}
+
       {/* banner — flat color block, never a gradient */}
       <div
         className={`relative flex h-32 items-center justify-center ${
@@ -170,7 +181,7 @@ export default function AppCard({
             </div>
           </div>
         ) : (
-        <div className="mt-3 flex items-start gap-2">
+        <div className="relative z-10 mt-3 flex items-start gap-2">
           {app.isDemo ? (
             <span className="flex flex-1 items-center justify-center rounded-btn border-2 border-dashed border-text-faint bg-paper px-4 py-2 text-center font-sans text-meta font-semibold text-text-secondary shadow-resting">
               Example app

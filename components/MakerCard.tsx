@@ -111,10 +111,21 @@ export default function MakerCard({
       animate={{ opacity: 1, y: 0 }}
       whileHover={hoverLift}
       transition={transitionBase}
-      className={`flex flex-row overflow-hidden rounded-card border-2 border-ink bg-card shadow-resting transition-shadow duration-150 hover:shadow-elevated sm:flex-col ${
+      className={`relative flex flex-row overflow-hidden rounded-card border-2 border-ink bg-card shadow-resting transition-shadow duration-150 hover:shadow-elevated sm:flex-col ${
         isSold ? "opacity-75" : ""
       }`}
     >
+      {/* whole-card link opens the detail overlay; the nested seller link + action
+          buttons sit at z-10 above it, so those keep their own targets (no
+          event-bubbling fights, no nested <a>). Stripped in the landing preview. */}
+      {!readOnly && (
+        <Link
+          href={`/p/${product.id}`}
+          aria-label={`View ${product.title}`}
+          className="absolute inset-0 z-0"
+        />
+      )}
+
       {/* photo (element 0) or, when there's none, the category color block —
           left rail on mobile, top banner on desktop. Same slot either way, so
           legacy/demo rows (no photo) render exactly as before. */}
@@ -193,7 +204,7 @@ export default function MakerCard({
           return product.isDemo ? (
             block
           ) : (
-            <Link href={`/u/${product.author.handle}`} className="w-fit rounded-btn hover:underline">
+            <Link href={`/u/${product.author.handle}`} className="relative z-10 w-fit rounded-btn hover:underline">
               {block}
             </Link>
           );
@@ -204,29 +215,33 @@ export default function MakerCard({
         {/* thrift condition — body only, never on the photo. Null → nothing. */}
         {product.type === "thrift" && <ConditionBadge condition={product.condition} />}
 
-        {/* primary action — example / request / owner / sold (hidden in preview) */}
-        {!readOnly &&
-          (product.isDemo ? (
-            <p className="mt-1 text-center text-meta font-semibold text-text-faint">
-              Example listing
-            </p>
-          ) : isSold ? (
-            <p className="mt-1 text-center text-meta font-semibold text-text-faint">
-              No longer available
-            </p>
-          ) : isOwn ? (
-            isThrift ? (
-              <MarkSoldButton postId={product.id} />
+        {/* primary action — example / request / owner / sold (hidden in preview).
+            z-10 keeps it clickable above the whole-card detail link. */}
+        {!readOnly && (
+          <div className="relative z-10">
+            {product.isDemo ? (
+              <p className="mt-1 text-center text-meta font-semibold text-text-faint">
+                Example listing
+              </p>
+            ) : isSold ? (
+              <p className="mt-1 text-center text-meta font-semibold text-text-faint">
+                No longer available
+              </p>
+            ) : isOwn ? (
+              isThrift ? (
+                <MarkSoldButton postId={product.id} />
+              ) : (
+                <p className="mt-1 text-center text-meta text-text-faint">Your listing</p>
+              )
             ) : (
-              <p className="mt-1 text-center text-meta text-text-faint">Your listing</p>
-            )
-          ) : (
-            <RequestButton postId={product.id} />
-          ))}
+              <RequestButton postId={product.id} />
+            )}
+          </div>
+        )}
 
         {/* review = the verified-karma action (shop only, secondary) */}
         {showReview && (
-          <div className="relative mt-1">
+          <div className="relative z-10 mt-1">
             <motion.button
               type="button"
               onClick={openReview}

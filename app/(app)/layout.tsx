@@ -10,7 +10,8 @@ import { getCurrentUser } from "@/lib/identity";
  */
 export default async function AppLayout({
   children,
-}: Readonly<{ children: React.ReactNode }>) {
+  modal,
+}: Readonly<{ children: React.ReactNode; modal: React.ReactNode }>) {
   const user = await getCurrentUser();
   const youHref = user?.profile ? `/u/${user.profile.handle}` : "/login";
 
@@ -22,6 +23,8 @@ export default async function AppLayout({
         <div className="flex min-w-0 flex-1 flex-col pb-16 md:pb-0">{children}</div>
       </div>
       <MobileNav youHref={youHref} />
+      {/* intercepted listing-detail overlay (empty via @modal/default.tsx otherwise) */}
+      {modal}
     </>
   );
 }
