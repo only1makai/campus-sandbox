@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import { ImagePlus, X, Star } from "lucide-react";
 import { uploadListingImage } from "@/app/actions/listing-images";
+import { downscaleImage } from "@/lib/image";
 
 /**
  * Listing photo picker. `max=3` → shop MultiImageUploader (slot 0 badged MAIN,
@@ -30,7 +31,7 @@ export default function ListingImageUploader({
   const pick = (file: File) => {
     setError(null);
     startT(async () => {
-      const prepared = await downscale(file).catch(() => file);
+      const prepared = await downscaleImage(file).catch(() => file);
       const fd = new FormData();
       fd.set("image", prepared);
       fd.set("token", token);
@@ -119,34 +120,4 @@ export default function ListingImageUploader({
       />
     </div>
   );
-}
-
-/**
- * Downscale a large photo to <=1600px on the long edge and re-encode, so a raw
- * 12MP phone shot isn't uploaded at full size. Dependency-free (canvas). GIFs
- * are passed through untouched (canvas would flatten the animation); anything
- * already small is returned as-is.
- */
-async function downscale(file: File, maxEdge = 1600): Promise<File> {
-  if (file.type === "image/gif" || typeof createImageBitmap !== "function") return file;
-  const bitmap = await createImageBitmap(file);
-  const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height));
-  if (scale >= 1) {
-    bitmap.close?.();
-    return file;
-  }
-  const w = Math.round(bitmap.width * scale);
-  const h = Math.round(bitmap.height * scale);
-  const canvas = document.createElement("canvas");
-  canvas.width = w;
-  canvas.height = h;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return file;
-  ctx.drawImage(bitmap, 0, 0, w, h);
-  bitmap.close?.();
-  const outType = file.type === "image/png" ? "image/png" : "image/jpeg";
-  const blob: Blob | null = await new Promise((resolve) => canvas.toBlob(resolve, outType, 0.85));
-  if (!blob) return file;
-  const name = file.name.replace(/\.[^.]+$/, outType === "image/png" ? ".png" : ".jpg");
-  return new File([blob], name, { type: outType });
 }

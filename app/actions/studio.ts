@@ -15,21 +15,36 @@ async function actor() {
   return { supabase, user };
 }
 
-/** Saves the seller's storefront identity (shop name/tagline/banner color). */
+/** Saves the seller's full storefront identity (name/tagline/banner + hero,
+ *  specialty tags, custom-orders toggle, shop story). update_shop_profile is
+ *  owner-only and re-validates tag count (≤5) and story length (≤400). */
 export async function saveShopIdentity(input: {
   shopName: string;
   shopTagline: string;
   shopBannerColor: string;
+  shopHeroUrl?: string | null;
+  specialtyTags?: string[];
+  acceptsCustom?: boolean;
+  shopStory?: string;
 }): Promise<StudioResult> {
   const { supabase, user } = await actor();
   if (!user) return { ok: false, reason: "auth_required" };
+  const tags = (input.specialtyTags ?? [])
+    .map((t) => t.trim())
+    .filter(Boolean)
+    .slice(0, 5);
   const { error } = await supabase.rpc("update_shop_profile", {
     p_shop_name: input.shopName.trim() || null,
     p_shop_tagline: input.shopTagline.trim() || null,
     p_shop_banner_color: input.shopBannerColor || null,
+    p_shop_hero_url: input.shopHeroUrl?.trim() || null,
+    p_specialty_tags: tags.length ? tags : null,
+    p_accepts_custom: input.acceptsCustom ?? false,
+    p_shop_story: input.shopStory?.trim() || null,
   });
   if (error) return { ok: false, reason: "error", message: error.message };
   revalidatePath("/studio");
+  revalidatePath("/u", "layout");
   return { ok: true };
 }
 

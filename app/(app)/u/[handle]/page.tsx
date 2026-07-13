@@ -5,7 +5,7 @@ import AvatarUpload from "@/components/AvatarUpload";
 import ShippedList from "@/components/ShippedList";
 import RatingStars from "@/components/RatingStars";
 import ComingSoonChip from "@/components/ComingSoonChip";
-import { FILL } from "@/lib/colors";
+import StorefrontProfileBlock from "@/components/StorefrontProfileBlock";
 import { getCurrentUser, getProfileByHandle, getReputation } from "@/lib/identity";
 import { fetchBetasTested, fetchPostsByAuthor, fetchShopIdentity, getSellerRating } from "@/lib/queries";
 
@@ -35,6 +35,8 @@ export default async function ProfilePage({ params }: { params: Promise<{ handle
   const apps = posts.filter((p) => p.type === "app");
   const selling = posts.filter((p) => p.type === "shop" || p.type === "thrift");
   const hasStorefront = !!shopIdentity.shopName && selling.length > 0;
+  // exact completed-sale count (sold thrift), same basis as the Studio stat
+  const salesCount = selling.filter((p) => p.type === "thrift" && p.status === "sold").length;
 
   // muted = zero/empty → renders smaller + lower-contrast so a new profile reads
   // "getting started," not "abandoned."
@@ -171,26 +173,9 @@ export default async function ProfilePage({ params }: { params: Promise<{ handle
         <ShippedList posts={apps} emptyLabel="No apps shipped yet." />
 
         {hasStorefront ? (
-          <div className="mt-6 overflow-hidden rounded-card border-2 border-ink shadow-resting">
-            <div className={`flex items-center justify-between gap-2 px-4 py-3 ${FILL[shopIdentity.shopBannerColor ?? "gold"]}`}>
-              <div className="min-w-0">
-                <p className="truncate font-display text-card-title font-extrabold text-white drop-shadow">
-                  {shopIdentity.shopName}
-                </p>
-                {shopIdentity.shopTagline && (
-                  <p className="truncate text-meta font-semibold text-white/90">{shopIdentity.shopTagline}</p>
-                )}
-              </div>
-              {rating.count > 0 && (
-                <span className="shrink-0 rounded-full bg-card px-2 py-0.5">
-                  <RatingStars avg={rating.avg} count={rating.count} />
-                </span>
-              )}
-            </div>
-            <div className="bg-card p-4">
-              <ShippedList posts={selling} emptyLabel="Nothing for sale yet." />
-            </div>
-          </div>
+          <StorefrontProfileBlock profile={profile} identity={shopIdentity} rating={rating} salesCount={salesCount}>
+            <ShippedList posts={selling} emptyLabel="Nothing for sale yet." />
+          </StorefrontProfileBlock>
         ) : (
           <>
             <div className="mt-6 flex items-center justify-between">
