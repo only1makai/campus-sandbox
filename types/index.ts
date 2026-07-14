@@ -73,6 +73,8 @@ export interface ShopPost extends PostBase {
   shopName?: string | null;
   shopTagline?: string | null;
   shopBannerColor?: SupportingColor | null;
+  /** wide storefront banner behind the ShopHeader identity (null → color tint) */
+  shopHeroUrl?: string | null;
 }
 
 export type ThriftStatus = "available" | "sold" | "expired";

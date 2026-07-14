@@ -196,6 +196,7 @@ export default function MakerCard({
                 shopName={product.shopName}
                 shopTagline={product.shopTagline}
                 bannerColor={product.shopBannerColor}
+                heroUrl={product.shopHeroUrl}
                 rating={rating}
               />
             ) : (

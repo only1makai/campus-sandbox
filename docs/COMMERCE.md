@@ -239,6 +239,28 @@ persist even if a draft is abandoned mid-upload — **orphaned-object cleanup is
 built** and only becomes relevant once post deletion exists (at which point sold
 posts must stay exempt, per CLAUDE.md's data-permanence rule). Noted, not built.
 
+### Follow-up (post-16): ShopHeader hero, avatar upload, share link
+
+- **ShopHeader hero-vs-tint.** `ShopHeader` (Marketplace cards + the detail view's
+  identity block) renders the shop's `shop_hero_url` as the background behind the
+  identity (avatar/name/tagline) with a legibility scrim when one is set; **no hero →
+  the flat banner-color tint / plain row, unchanged.** This is scoped to the identity
+  block's *background* only — the listing's own element-0 photo (card image + detail
+  gallery) is untouched. `ShopPost` carries `shopHeroUrl` (mapped from the author
+  profile row, like the other shop fields). The public profile's
+  `StorefrontProfileBlock` already did hero-vs-tint via its own banner band, so it's
+  consistent without change.
+- **Avatar upload normalization.** The avatar path now runs the **same client-side
+  canvas downscale** as the listing uploader (`lib/image.ts#downscaleImage`) before
+  upload, and `next.config.ts` raises `serverActions.bodySizeLimit` to 6MB. Root cause
+  of the iPhone "Edit Profile" crash: a raw 2–5MB photo exceeded the default 1MB
+  server-action body limit and was rejected *before* `uploadAvatarAction`'s try/catch
+  could run. Downscaling keeps uploads small; the raised limit backstops the
+  downscale-failure / HEIC fallback. Avatar and listing uploads now share one
+  normalization step.
+- **Share link.** The `/p/[id]` detail shell has a copy-link button (both the
+  intercepted overlay and the bare direct-link state); no backend.
+
 ## Demo posts (Session 13e)
 
 `posts.is_demo` flags the seeded placeholder content (backfilled by the 12

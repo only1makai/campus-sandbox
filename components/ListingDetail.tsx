@@ -9,6 +9,7 @@ import ConditionBadge from "@/components/ConditionBadge";
 import RequestButton from "@/components/RequestButton";
 import MarkSoldButton from "@/components/MarkSoldButton";
 import TesterActions from "@/components/TesterActions";
+import ShareButton from "@/components/ShareButton";
 
 /**
  * The universal detail shell — one content layout for all three post types,
@@ -28,14 +29,17 @@ export default function ListingDetail({ data }: { data: ListingDetailData }) {
       <DetailGallery images={images} bannerColor={bannerColor} title={post.title} letter={post.title[0] ?? "?"} />
 
       <div className="flex flex-col gap-4 p-5 sm:p-6">
-        {/* title + price/status */}
+        {/* title + price + share */}
         <div className="flex items-start justify-between gap-3">
           <h1 className="min-w-0 font-display text-heading text-ink">{post.title}</h1>
-          {post.type !== "app" && (
-            <span className="shrink-0 rounded-chip border-2 border-ink bg-card px-3 py-1 font-display text-card-title text-ink shadow-resting">
-              ${(post.priceCents / 100).toFixed(post.priceCents % 100 ? 2 : 0)}
-            </span>
-          )}
+          <div className="flex shrink-0 items-center gap-2">
+            {post.type !== "app" && (
+              <span className="rounded-chip border-2 border-ink bg-card px-3 py-1 font-display text-card-title text-ink shadow-resting">
+                ${(post.priceCents / 100).toFixed(post.priceCents % 100 ? 2 : 0)}
+              </span>
+            )}
+            <ShareButton />
+          </div>
         </div>
 
         {/* meta row */}
@@ -80,6 +84,7 @@ export default function ListingDetail({ data }: { data: ListingDetailData }) {
                 shopName={post.shopName}
                 shopTagline={post.shopTagline}
                 bannerColor={post.shopBannerColor}
+                heroUrl={post.shopHeroUrl}
                 rating={rating}
                 size="profile"
               />

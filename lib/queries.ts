@@ -105,6 +105,7 @@ function toShopPost(row: ShopWithAuthor): ShopPost {
     shopName: row.author_profile.shop_name,
     shopTagline: row.author_profile.shop_tagline,
     shopBannerColor: (row.author_profile.shop_banner_color ?? null) as SupportingColor | null,
+    shopHeroUrl: row.author_profile.shop_hero_url,
   };
 }
 
