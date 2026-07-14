@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Camera } from "lucide-react";
 import type { SupportingColor } from "@/types";
 import { uploadAvatarAction } from "@/app/actions/profile";
+import { downscaleImage } from "@/lib/image";
 
 const FILL: Record<SupportingColor, string> = {
   gold: "bg-gold",
@@ -41,9 +42,16 @@ export default function AvatarUpload({
   const handlePick = (file: File) => {
     setError(null);
     setPreview(URL.createObjectURL(file));
-    const formData = new FormData();
-    formData.set("avatar", file);
     startTransition(async () => {
+      // Downscale on the client first (shared with the listing uploader). A raw
+      // iPhone photo is often 2–5MB, which exceeds the Next.js server-action body
+      // limit and gets rejected BEFORE the action's try/catch can run — the real
+      // cause of the "Edit Profile" avatar crash. Re-encoding to ~1600px also
+      // normalizes format quirks. Falls back to the original file if the canvas
+      // path fails; the raised bodySizeLimit backstops that case.
+      const prepared = await downscaleImage(file).catch(() => file);
+      const formData = new FormData();
+      formData.set("avatar", prepared);
       const result = await uploadAvatarAction(formData);
       setPreview(null);
       if (!result.ok) {
