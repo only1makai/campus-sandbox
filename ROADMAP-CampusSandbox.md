@@ -53,7 +53,7 @@ Plan for `only1makai/campus-sandbox`, from the current state to done. Read `CLAU
 
 ## Phase 2: Make the repo safe to make public
 
-- [ ] **2.1 `[agent]` Secrets audit of the working tree and full git history.**
+- [x] **2.1 `[agent]` Secrets audit of the working tree and full git history.** Done 2026-11-17, clean. Used detect-secrets instead of gitleaks/trufflehog; see `docs/SECURITY-AUDIT.md`.
   - Acceptance: scanner output (gitleaks or trufflehog) pasted raw and unedited in the PR. Result is zero findings, or each finding is listed with file, commit, and a rotate-this note for the owner. No history rewrite. `.env*` ignored, shown by `git check-ignore -v .env.local`.
 
 - [ ] **2.2 `[agent]` `.env.example` with variable names only.**
