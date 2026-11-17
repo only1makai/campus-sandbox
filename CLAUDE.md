@@ -97,3 +97,4 @@ Prior UI/styling discussion can be summarized more aggressively.
 - `/docs/COMMERCE.md` — categories (app/shop/thrift), the ephemeral Request
   system, seller ratings, ephemeral-vs-permanent retention + no-ranking guardrails
 - `/docs/CALINKS_ONBOARDING.md` — how a second product connects to this identity layer
+- `CLAUDE-CampusSandbox.md` + `ROADMAP-CampusSandbox.md` — autonomous-agent brief and work queue. Read both before roadmap work. Where they conflict with this file, flag it in the PR (roadmap item 3.1).
